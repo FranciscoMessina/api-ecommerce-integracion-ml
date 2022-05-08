@@ -11,8 +11,8 @@ import * as path from 'path';
 
 async function bootstrap() {
   const httpsOptions = {
-    cert: fs.readFileSync(path.join(__dirname, '../.cert/localhost.pem'), 'utf-8'),
-    key: fs.readFileSync(path.join(__dirname, '../.cert/localhost-key.pem'), 'utf-8'),
+    cert: fs.readFileSync(path.join(__dirname, '../.cert/cert.pem'), 'utf-8'),
+    key: fs.readFileSync(path.join(__dirname, '../.cert/key.pem'), 'utf-8'),
   };
 
   // const server = express();
