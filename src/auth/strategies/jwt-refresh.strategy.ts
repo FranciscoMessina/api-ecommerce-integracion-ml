@@ -20,6 +20,6 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
     const { jwt } = req.cookies;
     // console.log(jwt);
 
-    return this.usersService.findById(payload.sub);
+    return this.usersService.findByRefreshToken(jwt);
   }
 }

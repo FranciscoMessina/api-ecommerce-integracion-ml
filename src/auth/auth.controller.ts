@@ -56,7 +56,7 @@ export class AuthController {
 
     if (!jwt) return;
 
-    const loggedOut = await this.authService.signOut(jwt);
+    const loggedOut = await this.authService.signOut(jwt, false);
 
     if (loggedOut) {
       res.clearCookie('jwt', {

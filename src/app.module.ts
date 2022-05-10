@@ -11,10 +11,10 @@ import { Question } from './entities/question.entity.js';
 import { QuickAnswer } from './entities/quickanswer.entity.js';
 import { UserConfig } from './entities/user-config.entity.js';
 import { User } from './entities/user.entity.js';
-import { UtilsModule } from './utils/utils.module';
 import { MeliModule } from './meli/meli.module';
-import { UsersModule } from './users/users.module';
 import { OrdersModule } from './orders/orders.module';
+import { UsersModule } from './users/users.module';
+import { UtilsModule } from './utils/utils.module';
 
 const validationSchema = Joi.object({
   MELI_CLIENT_ID: Joi.number().required(),
