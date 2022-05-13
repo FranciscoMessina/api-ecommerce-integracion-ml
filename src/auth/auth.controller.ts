@@ -44,6 +44,7 @@ export class AuthController {
 
     return {
       id: user.id,
+      meliId: user.config.meliId,
       accessToken,
       roles: [2001, 1984, 5150],
     };

@@ -1,13 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'crypto';
 
 @Injectable()
-export class Crypto {
+export class CryptoService {
   key;
 
-  constructor(private config: ConfigService) {
-    this.key = this.config.get('ENCRYPTION_KEY');
+  constructor() {
+    this.key = createHash('sha256').update(process.env.ENCRYPTION_SECRET).digest().slice(0, 32);
   }
 
   encrypt(text: string): string {
@@ -18,11 +17,11 @@ export class Crypto {
 
     // console.log(`${iv.toString('hex')}.${encryption.toString('hex')}`);
 
-    return `${iv.toString('hex')}.|.${encryption.toString('hex')}`;
+    return `${iv.toString('hex')}|${encryption.toString('hex')}`;
   }
 
   decrypt(text: string): string {
-    const [iv, encryptedText] = text.split('.|.');
+    const [iv, encryptedText] = text.split('|');
 
     const decipher = createDecipheriv('aes-256-ctr', this.key, Buffer.from(iv, 'hex'));
 

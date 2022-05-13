@@ -1,4 +1,4 @@
-import { InvoiceStatus, SaleChannel, SearchStatus } from 'src/types/orders.types';
+import { MeliBuyer, InvoiceStatus, SaleChannel, SearchStatus } from 'src/types/orders.types';
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { User } from './user.entity.js';
 
@@ -7,8 +7,8 @@ export class Order {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
-  isCartOrder: boolean;
+  @Column({ nullable: true })
+  cartId?: number;
 
   @Column('bigint', {
     array: true,
@@ -24,11 +24,21 @@ export class Order {
   })
   meliOrderIds?: number[];
 
+  @Column('jsonb')
+  buyer: MeliBuyer;
+
+  @Column('jsonb', { array: true })
+  items: {
+    id: string;
+    quantity: number;
+    price: number;
+  }[];
+
   @Column({ type: 'enum', enum: InvoiceStatus, default: InvoiceStatus.Pending })
   invoiceStatus: InvoiceStatus;
 
-  @Column({ unique: true })
-  invoiceId: string;
+  @Column({ nullable: true })
+  invoiceId?: string;
 
   @Column({ type: 'enum', enum: SearchStatus, default: SearchStatus.Pending })
   searchStatus: SearchStatus;

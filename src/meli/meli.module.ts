@@ -5,11 +5,13 @@ import { MeliController } from './meli.controller';
 import { MeliFunctions } from './meli.functions';
 import { MeliOauth } from './meli.oauth.js';
 import { MeliService } from './meli.service';
-import * as redisStore from 'cache-manager-redis-store'
+import * as redisStore from 'cache-manager-redis-store';
+import { OrdersModule } from '../orders/orders.module.js';
 
 @Module({
   imports: [
     UsersModule,
+    OrdersModule,
     CacheModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

@@ -8,7 +8,7 @@ import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class AuthService {
-  constructor(@Inject(UsersService) private usersService: UsersService, private jwt: JwtService, private config: ConfigService) {}
+  constructor(private jwt: JwtService, @Inject(UsersService) private usersService: UsersService, private config: ConfigService) {}
 
   async signUp({ email, password }: CreateUserDto) {
     const existingUser = await this.usersService.findByEmail(email);

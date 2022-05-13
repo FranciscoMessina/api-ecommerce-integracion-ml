@@ -43,6 +43,8 @@ export class MeliController {
     const user = await this.meliService.meliCallback({ code, state });
 
     if (user.config.meliAccess) return res.redirect(`${this.config.get('APP_CALLBACK_URL')}`);
+
+    return res.redirect(`${this.config.get('APP_CALLBACK_URL')}`);
   }
 
   @Post('notifications')

@@ -31,12 +31,14 @@ export class UsersController {
 
   @Put('/quickanswers/:id')
   editQuickAnswer(@Param('id') id: string, @Body() body: QuickAnswerDto) {
+    console.log(body);
+
     return this.usersService.editQuickAnswer(id, body);
   }
 
   @Delete('/quickanswers/:id')
-  deleteQuickAnswer(@Param('id') id: string, @CurrentUser() user: User) {
-    return this.usersService.deleteQuickAnswer(id, user);
+  deleteQuickAnswer(@Param('id') id: string) {
+    return this.usersService.deleteQuickAnswer(id);
   }
 
   @Post('/hello')

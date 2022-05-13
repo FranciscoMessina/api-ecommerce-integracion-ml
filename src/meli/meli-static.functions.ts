@@ -1,10 +1,8 @@
-import { Inject, Injectable, Scope, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { REQUEST } from '@nestjs/core';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import axios, { AxiosError, AxiosResponse } from 'axios';
-import { Request } from 'express';
 import { URLSearchParams } from 'url';
+import { User } from '../entities/user.entity.js';
 import { ErrorActions } from '../types/actions.types';
 import {
   GetQuestionsFilters,
@@ -14,43 +12,23 @@ import {
   MeliSendMessageOptions,
   QuestionsResponseTime,
 } from '../types/meli.types';
+import { CryptoService } from '../utils/crypto.js';
 import { MeliOauth } from './meli.oauth.js';
 
-@Injectable({ scope: Scope.REQUEST })
-export class MeliFunctions {
-  private get token() {
-    return this.userConfig.meliAccess;
-  }
-
-  private set token(newToken: string) {
-    this.req.user.config.meliAccess = newToken;
-  }
-
-  private get sellerId() {
-    return this.userConfig.meliId;
-  }
-
-  private get refreshToken() {
-    return this.userConfig.meliRefresh;
-  }
-
-  private set refreshToken(newToken: string) {
-    this.req.user.config.meliRefresh = newToken;
-  }
-
+@Injectable()
+export class StaticMeliFunctions {
   private httpInstance = axios.create();
+  private token: string;
+  private refreshToken: string;
+  private sellerId: number;
+  private emitter = new EventEmitter2();
+  private crypto = new CryptoService();
 
-  private get userConfig() {
-    return this.req.user.config;
-  }
-
-  constructor(
-    private readonly config: ConfigService,
-    private readonly emitter: EventEmitter2,
-    private readonly meliOauth: MeliOauth,
-    @Inject(REQUEST) private req: Request,
-  ) {
-    this.httpInstance.defaults.baseURL = this.config.get('MELI_API_URL');
+  constructor(private user: User, private readonly meliOauth: MeliOauth) {
+    this.token = this.crypto.decrypt(this.user.config.meliAccess);
+    this.sellerId = this.user.config.meliId;
+    this.refreshToken = this.crypto.decrypt(this.user.config.meliRefresh);
+    this.httpInstance.defaults.baseURL = process.env.MELI_API_URL;
 
     this.httpInstance.interceptors.request.use((config) => {
       config.headers.Authorization = `Bearer ${this.token}`;
@@ -69,7 +47,7 @@ export class MeliFunctions {
           prevRequest.sent = true;
           console.log('refreshing after request error');
 
-          const refreshResponse = await this.meliOauth.refreshAccessToken(this.userConfig.meliRefresh);
+          const refreshResponse = await this.meliOauth.refreshAccessToken(this.refreshToken);
 
           if ('error' in refreshResponse.data) {
             throw new UnauthorizedException({

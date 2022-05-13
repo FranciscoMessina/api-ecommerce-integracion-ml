@@ -15,6 +15,7 @@ export class QuickAnswer {
   @Column()
   color: string;
 
+  @Column()
   @Generated('increment')
   position: number;
 

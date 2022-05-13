@@ -1,14 +1,14 @@
 import { CacheModule, Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CacheService } from './cache.service.js';
-import { Crypto } from './crypto';
+import { CryptoService } from './crypto';
 import { MailsService } from './mails.service.js';
 import * as redisStore from 'cache-manager-redis-store';
 
 @Global()
 @Module({
-  providers: [Crypto, MailsService, CacheService],
-  exports: [Crypto, MailsService, CacheService],
+  providers: [CryptoService, MailsService, CacheService],
+  exports: [CryptoService, MailsService, CacheService],
   imports: [
     CacheModule.registerAsync({
       imports: [ConfigModule],

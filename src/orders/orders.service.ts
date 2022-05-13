@@ -1,26 +1,48 @@
 import { Injectable } from '@nestjs/common';
-import { CreateOrderDto } from './dto/create-order.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { ArrayContains, Repository } from 'typeorm';
+import { Order } from '../entities/order.entity.js';
+import { FindOrdersOptions } from '../types/orders.types.js';
 import { UpdateOrderDto } from './dto/update-order.dto';
 
 @Injectable()
 export class OrdersService {
-  create(createOrderDto: CreateOrderDto) {
-    return 'This action adds a new order';
+  constructor(@InjectRepository(Order) private readonly ordersRepo: Repository<Order>) {}
+  create(createOrderDto: Partial<Order>) {
+    const order = this.ordersRepo.create(createOrderDto);
+    return this.ordersRepo.save(order);
   }
 
-  findAll() {
-    return `This action returns all orders`;
+  find(options?: FindOrdersOptions) {
+    const { limit = 50, offset = 0 } = options;
+
+    return this.ordersRepo.find({ take: limit, skip: offset });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} order`;
+  findOne(id: string) {
+    return this.ordersRepo.findOneBy({ id });
   }
 
-  update(id: number, updateOrderDto: UpdateOrderDto) {
-    return `This action updates a #${id} order`;
+  update(id: string, updateOrderDto: UpdateOrderDto) {
+    return this.ordersRepo.update(
+      {
+        id,
+      },
+      {
+        ...updateOrderDto,
+      },
+    );
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} order`;
+  remove(id: string) {
+    return this.ordersRepo.delete({ id });
+  }
+
+  findByMeliID(meliID: number) {
+    return this.ordersRepo.findOne({
+      where: {
+        meliOrderIds: ArrayContains([meliID]),
+      },
+    });
   }
 }

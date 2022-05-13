@@ -1,12 +1,12 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { QuickAnswer } from 'src/entities/quickanswer.entity';
 import { UserConfig } from 'src/entities/user-config.entity';
 import { User } from 'src/entities/user.entity';
 import { ArrayContains, Repository } from 'typeorm';
-import { Crypto } from '../utils/crypto.js';
 import { MeliOauthResponse } from '../types/meli.types.js';
+import { CryptoService } from '../utils/crypto.js';
 import { AutoMessageDto } from './dto/auto-message.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { QuickAnswerDto } from './dto/quickanswer.dto';
@@ -17,7 +17,7 @@ export class UsersService {
     @InjectRepository(User) private readonly userRepo: Repository<User>,
     @InjectRepository(UserConfig) private readonly configRepo: Repository<UserConfig>,
     @InjectRepository(QuickAnswer) private readonly qaRepo: Repository<QuickAnswer>,
-    private crypto: Crypto,
+    private crypto: CryptoService,
   ) {}
 
   updateMeliConfig(meliID: number, data: MeliOauthResponse) {
@@ -63,7 +63,7 @@ export class UsersService {
       this.qaRepo.create({
         name: 'Ejemplo',
         text: 'Respuesta rapida de ejemplo, modificala y agrega nuevas!',
-        color: '#00ff00',
+        color: '#9775fa',
       }),
     ];
 
@@ -103,7 +103,14 @@ export class UsersService {
   }
 
   async findQuickAnswers(user: User, query: string) {
-    const quickAnswers = await this.qaRepo.find({ where: { user: { id: user.id } } });
+    const quickAnswers = await this.qaRepo.find({
+      where: { user: { id: user.id } },
+      order: {
+        position: 'DESC',
+      },
+    });
+
+    // console.log(quickAnswers);
 
     if (!query)
       return {
@@ -142,16 +149,10 @@ export class UsersService {
     });
   }
 
-  async deleteQuickAnswer(id: string, user: User) {
+  async deleteQuickAnswer(id: string) {
     const qa = await this.qaRepo.findOneBy({ id: id });
 
-    if (qa.user.id !== user.id) throw new ForbiddenException('');
-
     return this.qaRepo.remove(qa);
-  }
-
-  findAll() {
-    return this.userRepo.find();
   }
 
   @OnEvent('meli.tokens.update', {

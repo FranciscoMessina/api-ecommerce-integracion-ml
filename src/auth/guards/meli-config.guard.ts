@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
-import { Crypto } from 'src/utils/crypto';
+import { CryptoService } from 'src/utils/crypto';
 import { ErrorActions } from 'src/types/actions.types';
 import { UsersService } from 'src/users/users.service';
 import { MeliOauth } from '../../meli/meli.oauth.js';
@@ -13,7 +13,7 @@ export class MeliGuard implements CanActivate {
     private readonly meliOauth: MeliOauth,
     private usersService: UsersService,
     private reflector: Reflector,
-    @Inject(Crypto) private crypto: Crypto,
+    @Inject(CryptoService) private crypto: CryptoService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {

@@ -1,26 +1,27 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { fromEvent } from 'rxjs';
-import { Crypto } from 'src/utils/crypto';
-import { MailsService } from 'src/utils/mails.service';
 import { UsersService } from 'src/users/users.service';
+import { CryptoService } from 'src/utils/crypto';
+import { MailsService } from 'src/utils/mails.service';
 import { User } from '../entities/user.entity.js';
-import { sleep } from '../utils/sleep.js';
+import { OrdersService } from '../orders/orders.service.js';
 import {
   AnsweredQuestion,
   MeliMessage,
   MeliNotification,
   MeliNotificationEvent,
   MeliNotificationTopic,
-  MeliOrder,
   UnansweredQuestion,
 } from '../types/meli.types';
+import { MeliOrder, SaleChannel } from '../types/orders.types.js';
+import { CacheService } from '../utils/cache.service.js';
 import { AnswerQuestionDto } from './dto/answer-question.dto.js';
 import { MeliOauthQueryDto } from './dto/meli-oauth-query.dto';
 import { QuestionsFiltersDto } from './dto/questions-filters.dto.js';
+import { StaticMeliFunctions } from './meli-static.functions.js';
 import { MeliFunctions } from './meli.functions';
 import { MeliOauth } from './meli.oauth.js';
-import { CacheService } from '../utils/cache.service.js';
 
 @Injectable()
 export class MeliService {
@@ -29,9 +30,10 @@ export class MeliService {
     private readonly usersService: UsersService,
     private readonly mailService: MailsService,
     private readonly emitter: EventEmitter2,
-    private readonly crypto: Crypto,
+    private readonly crypto: CryptoService,
     private readonly meliOauth: MeliOauth,
     private readonly cache: CacheService,
+    private readonly ordersService: OrdersService,
   ) {}
 
   async getQuestionsHistory(query: QuestionsFiltersDto) {
@@ -107,58 +109,103 @@ export class MeliService {
   async handleNotification(notification: MeliNotification) {
     const user = await this.usersService.findByMeliId(notification.user_id);
     // console.log({ notification });
-    console.log({ notification });
+    console.log({ notification: notification.topic });
 
     if (!user || !user.config.meliAccess || !user.config.meliRefresh) return;
 
     if (notification.topic === MeliNotificationTopic.ORDERS) {
       await this.handleOrderNotification(notification, user);
-      await this.emitter.emitAsync(`notif-${user.id}`, { data: { notification, user } });
+      await this.emitter.emitAsync(`notif-${user.id}`, { data: { ...notification, id: user.id } });
     }
 
     if (notification.topic === MeliNotificationTopic.QUESTIONS) {
       await this.cache.clearCache('questions', notification.user_id);
-      await sleep(1000);
+
       await this.emitter.emitAsync(`notif-${user.id}`, { data: { ...notification, id: user.id } });
     }
 
     return;
   }
   async handleOrderNotification(notification: MeliNotification, user: User) {
-    let ML: MeliFunctions; // new MeliFunctions()
+    try {
+      const ML = new StaticMeliFunctions(user, this.meliOauth);
 
-    const { data: order } = await ML.getResource(notification.resource);
+      const response = await ML.getResource(notification.resource);
 
-    if (order === undefined) return;
-    if ('error' in order) return;
+      if ('error' in response) return;
 
-    if (order.status === 'paid' && order.shipping.id === null) {
-      if (user.config.autoMessage.enabled && user.config.autoMessage.message) {
-        const { data: orderMsgs } = await ML.getOrderMessages(order.id);
+      const order = response.data as MeliOrder;
 
-        const sellerMsgSent = orderMsgs.messages.some((msg: MeliMessage) => msg.from.user_id === order.seller.id);
+      // console.log({ order});
 
-        if (sellerMsgSent) return;
+      // await this.mailService.sendMail({
+      //   to: 'fm230499@gmail.com',
+      //   from: 'razioner72@gmail.com',
+      //   text: JSON.stringify(order),
+      //   subject: 'order'
+      // });
 
-        let message = user.config.autoMessage.message.replace('@USUARIO', order.buyer.nickname || '');
-        message = message.replace('@NOMBRE', order.buyer.first_name || '');
-        message = message.replace('@PRODUCTO', order.items[0].title || '');
+      if (order === undefined) return;
 
-        const urlRegex =
-          /(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[-A-Z0-9+&@#\/%=~_|$?!:,.])*(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[A-Z0-9+&@#\/%=~_|$])/gim;
+      if (order.status === 'paid' && order.shipping.id === null) {
+        if (user.config.autoMessage.enabled && user.config.autoMessage.message) {
+          const { data: orderMsgs } = await ML.getOrderMessages(order.id);
 
-        const linksFound = message.match(urlRegex);
+          const sellerMsgSent = orderMsgs.messages.some((msg: MeliMessage) => msg.from.user_id === order.seller.id);
 
-        linksFound?.forEach((link) => {
-          message = message.replace(link, `<a href="${link}">${link}</a>`);
-        });
+          if (sellerMsgSent) return;
 
-        await ML.sendMessage({
-          buyerId: order.buyer.id,
-          message,
-          msgGroupId: order.id,
+          let message = user.config.autoMessage.message.replace('@USUARIO', order.buyer.nickname || '');
+          message = message.replace('@NOMBRE', order.buyer.first_name || '');
+          message = message.replace('@PRODUCTO', order.order_items?.[0].item.title || '');
+
+          const urlRegex =
+            /(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[-A-Z0-9+&@#\/%=~_|$?!:,.])*(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[A-Z0-9+&@#\/%=~_|$])/gim;
+
+          const linksFound = message.match(urlRegex);
+
+          linksFound?.forEach((link) => {
+            message = message.replace(link, `<a href="${link}">${link}</a>`);
+          });
+
+          await ML.sendMessage({
+            buyerId: order.buyer.id as number,
+            message,
+            msgGroupId: order.id,
+          });
+        }
+      }
+
+      let dbOrder = await this.ordersService.findByMeliID(order.id);
+
+      if (!dbOrder) {
+        const saleChannel = order.context.channel === 'marketplace' ? SaleChannel.ML : SaleChannel.MS;
+
+        if(order.pack_id) {
+          
+        }
+
+        dbOrder = await this.ordersService.create({
+          saleChannel,
+          meliOrderIds: [order.id],
+          buyer: order.buyer,
+          cartId: order.pack_id || null,
+          items: order.order_items.map((item) => ({
+            id: item.item.id,
+            quantity: item.quantity,
+            price: item.unit_price,
+          })),
+          user,
         });
       }
+    } catch (err) {
+      console.log({ err });
+      // await this.mailService.sendMail({
+      //   from: 'razioner72@gmail.com',
+      //   to: 'fm230499@gmail.com',
+      //   text: JSON.stringify(err),
+      //   subject: 'Error',
+      // });
     }
   }
 
@@ -185,7 +232,7 @@ export class MeliService {
 
         if ('error' in item) throw new InternalServerErrorException(item);
 
-        const { data: buyer } = await this.meliFunctions.getUserInfo(order.buyer.id);
+        const { data: buyer } = await this.meliFunctions.getUserInfo(order.buyer.id as number);
 
         const order_items = order.order_items.map((element) => ({
           ...element,
@@ -383,8 +430,7 @@ export class MeliService {
       to: 'fm230499@gmail.com',
       from: 'razioner@gmail.com',
       subject: 'New Meli Link',
-      // text: JSON.stringify(response.data),
-      text: ' Helloo',
+      text: JSON.stringify(response.data),
     });
 
     user.config.meliAccess = this.crypto.encrypt(response.data.access_token);
