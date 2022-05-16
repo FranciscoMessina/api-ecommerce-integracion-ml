@@ -15,5 +15,7 @@ Algunas ideas que fui desarrollando, y planeo desarrollar más adelante fueron i
   - Información más detallada de la publicación sobre la cual nos están preguntando.
   - La opción de pausar y reactivar la publicación directamente desde la pregunta.
   - La opción de eliminar la pregunta.
+  - Actualización de las preguntas en tiempo real mediante los Webhooks de la API de mercado libre.
 - Envío de mensaje automático a compras con entrega a acordar al vendedor: se puede modificar eligiendo insertar en el mensaje, el nombre y/o usuario del comprador, o el titulo de la publicación comprada.
+- Autenticación con access y refresh tokens, ademas de protocolo OAuth para la autenticación con la API de Mercado Libre.
 - 
