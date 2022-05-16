@@ -7,24 +7,6 @@ volumes:
   node_modules:
 
 services:
-  # api:
-  #   build:
-  #     context: ./
-  #     target: dev
-  #     dockerfile: Dockerfile
-  #   restart: unless-stopped
-  #   volumes:
-  #     - .:/api
-  #     - node_modules:/api/node_modules
-  #   command: npm run start:dev
-  #   ports:
-  #     - 3001:3001
-  #   env_file:
-  #     - .env.development
-  #   networks:
-  #     - elriolibros
-  #   depends_on:
-  #     - postgres
   postgres:
     container_name: postgres
     image: postgres:14-alpine
@@ -38,7 +20,7 @@ services:
     volumes:
       - postgres:/var/lib/postgresql/data
     networks:
-      - elriolibros
+      - api
   pgadmin:
     links:
       - postgres:postgres
@@ -52,7 +34,7 @@ services:
     env_file:
       - docker.env
     networks:
-      - elriolibros
+      - api
   redis:
     container_name: redis
     image: redis:alpine
@@ -60,8 +42,8 @@ services:
       - 6379:6379
     restart: unless-stopped
     networks:
-      - elriolibros
+      - api
 networks:
-  elriolibros:
+  api:
     driver: bridge
 
