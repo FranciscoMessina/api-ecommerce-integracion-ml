@@ -88,7 +88,7 @@ export class AuthService {
 
       const accessToken = await this.getJWT(user.id, 'access');
 
-      return { accessToken, id: user.id, roles: [2001, 1984, 5150] };
+      return { accessToken, id: user.id, roles: [2001, 1984, 5150], meliId: user.config.meliId };
     } catch (error) {
       throw new ForbiddenException('Invalid token');
     }

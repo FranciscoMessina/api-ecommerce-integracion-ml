@@ -20,6 +20,8 @@ import { Response } from 'express';
 import { Public } from 'src/auth/decorators/public.decorator';
 import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 import { MeliGuard } from 'src/auth/guards/meli-config.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
+import { User } from '../entities/user.entity.js';
 import { HttpCacheInterceptor } from '../interceptors/http-cache.interceptor.js';
 import { AnswerQuestionDto } from './dto/answer-question.dto.js';
 import { MeliNotificationDto } from './dto/meli-notification.dto';
@@ -33,8 +35,8 @@ import { MeliService } from './meli.service';
 export class MeliController {
   constructor(private readonly meliService: MeliService, private config: ConfigService, private emitter: EventEmitter2) {}
 
-  @Get('oauth/callback')
   @Public()
+  @Get('oauth/callback')
   async meliCallback(@Query() { code, state, error }: MeliOauthQueryDto, @Res() res: Response) {
     if (error) {
       return res.redirect(`${this.config.get('APP_CALLBACK_URL')}?error=${error || 'unknown'}`);
@@ -47,20 +49,24 @@ export class MeliController {
     return res.redirect(`${this.config.get('APP_CALLBACK_URL')}`);
   }
 
-  @Post('notifications')
   @Public()
+  @Post('notifications')
   async meliNotifications(@Body() notification: MeliNotificationDto, @Res() res: Response) {
     res.status(200).send(notification);
-
-    // console.log('Lleggo una notifccc');
 
     return this.meliService.handleNotification(notification);
   }
 
-  @UseInterceptors(HttpCacheInterceptor)
-  @CacheKey('questions')
   @Get('questions')
-  getQuestions(@Query() query: QuestionsFiltersDto) {
+  @CacheKey('questions')
+  @UseInterceptors(HttpCacheInterceptor)
+  getQuestions(@Query() query: QuestionsFiltersDto, @CurrentUser() user: User) {
+    this.meliService.configure({
+      meliId: user.config.meliId,
+      refresh: user.config.meliRefresh,
+      token: user.config.meliAccess,
+    });
+
     if (!!query.history) {
       return this.meliService.getQuestionsHistory(query);
     }
@@ -69,41 +75,70 @@ export class MeliController {
   }
 
   @Delete('questions/:id')
-  async deleteQuestion(@Param('id') id: string) {
+  async deleteQuestion(@Param('id') id: string, @CurrentUser() user: User) {
+    this.meliService.configure({
+      meliId: user.config.meliId,
+      refresh: user.config.meliRefresh,
+      token: user.config.meliAccess,
+    });
     return this.meliService.deleteQuestion(id);
   }
 
   @Post('answers')
-  async answerQuestion(@Body() body: AnswerQuestionDto) {
-    console.log(body);
-    
+  async answerQuestion(@Body() body: AnswerQuestionDto, @CurrentUser() user: User) {
+    this.meliService.configure({
+      meliId: user.config.meliId,
+      refresh: user.config.meliRefresh,
+      token: user.config.meliAccess,
+    });
+
     return this.meliService.answerQuestion(body);
   }
 
   @Patch('items/:id/pause')
-  async pauseItem(@Param('id') id: string) {
+  async pauseItem(@Param('id') id: string, @CurrentUser() user: User) {
+    this.meliService.configure({
+      meliId: user.config.meliId,
+      refresh: user.config.meliRefresh,
+      token: user.config.meliAccess,
+    });
     return this.meliService.pauseItem(id);
   }
 
   @Patch('items/:id/activate')
-  async activateItem(@Param('id') id: string) {
+  async activateItem(@Param('id') id: string, @CurrentUser() user: User) {
+    this.meliService.configure({
+      meliId: user.config.meliId,
+      refresh: user.config.meliRefresh,
+      token: user.config.meliAccess,
+    });
     return this.meliService.activateItem(id);
   }
 
   @Get('items/search')
-  async searchItems(@Query('q') q: string) {
+  async searchItems(@Query('q') q: string, @CurrentUser() user: User) {
+    this.meliService.configure({
+      meliId: user.config.meliId,
+      refresh: user.config.meliRefresh,
+      token: user.config.meliAccess,
+    });
     if (!q) throw new BadRequestException('Query is required');
 
     return this.meliService.searchItems(q);
   }
 
   @Get('orders')
-  async getOrders() {
+  async getOrders(@CurrentUser() user: User) {
+    this.meliService.configure({
+      meliId: user.config.meliId,
+      refresh: user.config.meliRefresh,
+      token: user.config.meliAccess,
+    });
     return this.meliService.getOrders();
   }
 
-  @Sse('updates')
   @Public()
+  @Sse('updates')
   getEvents(@Query('id') id: string) {
     return this.meliService.sendNotifications(id);
   }

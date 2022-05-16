@@ -1,7 +1,7 @@
 import { Column, Entity, Generated, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from './user.entity';
 
-@Entity()
+@Entity('quick_answers')
 export class QuickAnswer {
   @PrimaryGeneratedColumn('uuid')
   id: string;

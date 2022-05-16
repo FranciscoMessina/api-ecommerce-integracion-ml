@@ -1,11 +1,10 @@
 import { Exclude } from 'class-transformer';
 import { Column, CreateDateColumn, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { Order } from './order.entity.js';
-import { Question } from './question.entity.js';
 import { QuickAnswer } from './quickanswer.entity';
 import { UserConfig } from './user-config.entity';
 
-@Entity()
+@Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -36,9 +35,6 @@ export class User {
 
   @OneToMany(() => Order, (order: Order) => order.user)
   orders: Order[]
-
-  @OneToMany(() => Question, (question: Question) => question.user)
-  questions: Question[]
 
   @CreateDateColumn()
   createdAt: Date;

@@ -2,7 +2,7 @@ import { MeliBuyer, InvoiceStatus, SaleChannel, SearchStatus } from 'src/types/o
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { User } from './user.entity.js';
 
-@Entity()
+@Entity('orders')
 export class Order {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -14,10 +14,10 @@ export class Order {
     array: true,
     nullable: true,
     transformer: {
-      from: (value: string | null) => {
+      from: (value: string[] | null) => {
         if (!value) return value;
 
-        return parseInt(value);
+        return value.map((a) => parseInt(a, 10));
       },
       to: (value) => value,
     },
@@ -25,14 +25,17 @@ export class Order {
   meliOrderIds?: number[];
 
   @Column('jsonb')
-  buyer: MeliBuyer;
+  buyer: Partial<MeliBuyer>;
 
-  @Column('jsonb', { array: true })
+  @Column('jsonb')
   items: {
     id: string;
     quantity: number;
     price: number;
   }[];
+
+  @Column({ nullable: true})
+  shippingId: number
 
   @Column({ type: 'enum', enum: InvoiceStatus, default: InvoiceStatus.Pending })
   invoiceStatus: InvoiceStatus;

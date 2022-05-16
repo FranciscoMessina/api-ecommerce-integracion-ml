@@ -2,7 +2,7 @@ import { Exclude } from 'class-transformer';
 import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from './user.entity';
 
-@Entity()
+@Entity('user-configs')
 export class UserConfig {
   @PrimaryGeneratedColumn('uuid')
   id: string;

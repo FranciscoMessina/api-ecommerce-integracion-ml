@@ -1,12 +1,12 @@
-import { CacheModule, Module } from '@nestjs/common';
+import { CacheModule, forwardRef, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import * as redisStore from 'cache-manager-redis-store';
 import { UsersModule } from 'src/users/users.module';
+import { OrdersModule } from '../orders/orders.module.js';
 import { MeliController } from './meli.controller';
 import { MeliFunctions } from './meli.functions';
 import { MeliOauth } from './meli.oauth.js';
 import { MeliService } from './meli.service';
-import * as redisStore from 'cache-manager-redis-store';
-import { OrdersModule } from '../orders/orders.module.js';
 
 @Module({
   imports: [
@@ -25,6 +25,6 @@ import { OrdersModule } from '../orders/orders.module.js';
   ],
   controllers: [MeliController],
   providers: [MeliService, MeliFunctions, MeliOauth],
-  exports: [MeliFunctions, MeliOauth],
+  exports: [MeliFunctions, MeliOauth, MeliService],
 })
 export class MeliModule {}

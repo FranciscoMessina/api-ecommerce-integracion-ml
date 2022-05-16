@@ -1,5 +1,5 @@
 import { Allow } from 'class-validator';
-import { QuestionStatus } from '../../types/meli.types';
+import { QuestionStatus } from '../../types/questions.types.js';
 
 export class QuestionsFiltersDto {
   @Allow()
@@ -24,5 +24,5 @@ export class QuestionsFiltersDto {
   offset?: number;
 
   @Allow()
-  history: boolean
+  history: boolean;
 }

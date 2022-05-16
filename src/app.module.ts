@@ -7,7 +7,6 @@ import * as Joi from 'joi';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
 import { Order } from './entities/order.entity.js';
-import { Question } from './entities/question.entity.js';
 import { QuickAnswer } from './entities/quickanswer.entity.js';
 import { UserConfig } from './entities/user-config.entity.js';
 import { User } from './entities/user.entity.js';
@@ -51,7 +50,7 @@ const validationSchema = Joi.object({
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
         url: config.get('PG_CONNECTION_URL'),
-        entities: [User, Order, Question, QuickAnswer, UserConfig],
+        entities: [User, Order, QuickAnswer, UserConfig],
         synchronize: true,
       }),
     }),

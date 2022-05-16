@@ -1,22 +1,74 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ArrayContains, Repository } from 'typeorm';
 import { Order } from '../entities/order.entity.js';
-import { FindOrdersOptions } from '../types/orders.types.js';
+import { MeliFunctions } from '../meli/meli.functions.js';
+import { FindOrdersOptions, SaleChannel } from '../types/orders.types.js';
 import { UpdateOrderDto } from './dto/update-order.dto';
 
 @Injectable()
 export class OrdersService {
-  constructor(@InjectRepository(Order) private readonly ordersRepo: Repository<Order>) {}
+  constructor(@InjectRepository(Order) private readonly ordersRepo: Repository<Order>, private readonly meli: MeliFunctions) {}
+
   create(createOrderDto: Partial<Order>) {
     const order = this.ordersRepo.create(createOrderDto);
     return this.ordersRepo.save(order);
   }
 
-  find(options?: FindOrdersOptions) {
-    const { limit = 50, offset = 0 } = options;
+  async find(userId: string, options?: FindOrdersOptions) {
+    const limit = options?.limit || 25;
+    const offset = options?.offset || 0;
 
-    return this.ordersRepo.find({ take: limit, skip: offset });
+    const ordersCount = await this.ordersRepo.count({ where: { user: { id: userId } } });
+    const orders = await this.ordersRepo.find({
+      where: {
+        user: { id: userId },
+      },
+      take: limit,
+      skip: offset,
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+
+    const mappedOrders = await Promise.all(
+      orders.map(async (order) => {
+        const meliItems: any = {};
+        if (order.saleChannel === SaleChannel.ML) {
+          const res = await this.meli.getItems(
+            order.items.map((item) => item.id),
+            ['title', 'secure_thumbnail', 'condition', 'id', 'permalink'],
+          );
+
+          if ('error' in res.data) throw new BadRequestException(res.data);
+
+          res.data.forEach((res) => {
+            meliItems[res.body.id] = res.body;
+          });
+        }
+
+        const mappedItems = order.items.map((item) => {
+          return {
+            ...item,
+            ...meliItems[item.id],
+          };
+        });
+
+        return {
+          ...order,
+          items: mappedItems,
+        };
+      }),
+    );
+
+    return {
+      paging: {
+        offset,
+        limit,
+        total: ordersCount,
+      },
+      results: mappedOrders,
+    };
   }
 
   findOne(id: string) {
@@ -42,6 +94,14 @@ export class OrdersService {
     return this.ordersRepo.findOne({
       where: {
         meliOrderIds: ArrayContains([meliID]),
+      },
+    });
+  }
+
+  findByCartId(cartId: number) {
+    return this.ordersRepo.findOne({
+      where: {
+        cartId,
       },
     });
   }

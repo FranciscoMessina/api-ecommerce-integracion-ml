@@ -1,60 +1,32 @@
-import { Inject, Injectable, Scope, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { REQUEST } from '@nestjs/core';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import axios, { AxiosError, AxiosResponse } from 'axios';
-import { Request } from 'express';
 import { URLSearchParams } from 'url';
 import { ErrorActions } from '../types/actions.types';
-import {
-  GetQuestionsFilters,
-  MeliApiError,
-  MeliItem,
-  MeliItemSearchResponse,
-  MeliSendMessageOptions,
-  QuestionsResponseTime,
-} from '../types/meli.types';
+import { GetItemsByIdsResponse, ItemAttributes, MeliItem, MeliItemSearchResponse } from '../types/items.types.js';
+import { MeliApiError, MeliSendMessageOptions } from '../types/meli.types';
+import { MeliOrder, OrdersSearchResponse } from '../types/orders.types.js';
+import { GetQuestionsFilters, QuestionsResponseTime } from '../types/questions.types.js';
 import { MeliOauth } from './meli.oauth.js';
 
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class MeliFunctions {
-  private get token() {
-    return this.userConfig.meliAccess;
-  }
+  private token: string;
 
-  private set token(newToken: string) {
-    this.req.user.config.meliAccess = newToken;
-  }
+  public sellerId: number;
 
-  private get sellerId() {
-    return this.userConfig.meliId;
-  }
-
-  private get refreshToken() {
-    return this.userConfig.meliRefresh;
-  }
-
-  private set refreshToken(newToken: string) {
-    this.req.user.config.meliRefresh = newToken;
-  }
+  private refreshToken: string;
 
   private httpInstance = axios.create();
 
-  private get userConfig() {
-    return this.req.user.config;
-  }
-
-  constructor(
-    private readonly config: ConfigService,
-    private readonly emitter: EventEmitter2,
-    private readonly meliOauth: MeliOauth,
-    @Inject(REQUEST) private req: Request,
-  ) {
+  constructor(private readonly config: ConfigService, private readonly emitter: EventEmitter2, private readonly meliOauth: MeliOauth) {
     this.httpInstance.defaults.baseURL = this.config.get('MELI_API_URL');
 
     this.httpInstance.interceptors.request.use((config) => {
-      config.headers.Authorization = `Bearer ${this.token}`;
-
+      if (config.headers['Authorization'] !== this.token) {
+        config.headers['Authorization'] = `Bearer ${this.token}`;
+      }
       return config;
     });
 
@@ -69,7 +41,7 @@ export class MeliFunctions {
           prevRequest.sent = true;
           console.log('refreshing after request error');
 
-          const refreshResponse = await this.meliOauth.refreshAccessToken(this.userConfig.meliRefresh);
+          const refreshResponse = await this.meliOauth.refreshAccessToken(this.refreshToken);
 
           if ('error' in refreshResponse.data) {
             throw new UnauthorizedException({
@@ -90,6 +62,18 @@ export class MeliFunctions {
         return Promise.reject(error);
       },
     );
+  }
+
+  configure(config: { token: string; refresh: string; meliId: number }) {
+    this.token = config.token;
+    this.refreshToken = config.refresh;
+    this.sellerId = config.meliId;
+  }
+
+  resetConfig() {
+    this.token = '';
+    this.refreshToken = '';
+    this.sellerId = 0;
   }
 
   async getQuestionsResponseTime(): Promise<AxiosResponse<QuestionsResponseTime | MeliApiError>> {
@@ -287,9 +271,17 @@ export class MeliFunctions {
     }
   }
 
-  async getItems() {
+  async getItems(ids: string[], attrs?: ItemAttributes[]): Promise<AxiosResponse<GetItemsByIdsResponse[] | MeliApiError>> {
+    const params = new URLSearchParams();
+
+    params.append('ids', ids.join(','));
+
+    if (attrs) {
+      params.append('attributes', attrs.join(','));
+    }
+
     try {
-      const response = await this.httpInstance.get(`/users/${this.sellerId}/items/search`);
+      const response = await this.httpInstance.get(`/items`, { params });
 
       return response;
     } catch (error) {
@@ -302,7 +294,7 @@ export class MeliFunctions {
     }
   }
 
-  async getItem(itemId: string, attrs?: string[]): Promise<AxiosResponse<MeliItem | MeliApiError>> {
+  async getItem(itemId: string, attrs?: ItemAttributes[]): Promise<AxiosResponse<Partial<MeliItem> | MeliApiError>> {
     const params = new URLSearchParams();
     if (attrs) {
       params.append('attributes', attrs.join(','));
@@ -334,7 +326,7 @@ export class MeliFunctions {
     }
   }
 
-  async getOrders(filters?: string) {
+  async getOrders(filters?: string): Promise<AxiosResponse<OrdersSearchResponse | MeliApiError>> {
     let url;
 
     switch (filters) {
@@ -368,7 +360,7 @@ export class MeliFunctions {
     }
   }
 
-  async getOrderInfo(orderId: number) {
+  async getOrderInfo(orderId: number): Promise<AxiosResponse<MeliOrder | MeliApiError>> {
     {
       try {
         const response = await this.httpInstance.get(`/orders/${orderId}`);
@@ -426,6 +418,21 @@ export class MeliFunctions {
   async getResource(resource: string): Promise<AxiosResponse<any | MeliApiError>> {
     try {
       const response = await this.httpInstance.get(`${resource}`);
+
+      return response;
+    } catch (error) {
+      console.log(error);
+      if (error.isAxiosError) {
+        return error.response;
+      }
+
+      throw error;
+    }
+  }
+
+  async getPackOrders(packId: number) {
+    try {
+      const response = await this.httpInstance.get(`/packs/${packId}`);
 
       return response;
     } catch (error) {

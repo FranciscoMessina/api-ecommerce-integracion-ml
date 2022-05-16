@@ -32,7 +32,7 @@ export class MeliGuard implements CanActivate {
 
     if (user.config.meliTokenExpires < Date.now()) {
       console.log('refreshing in meli guard');
-      
+
       const refreshToken = this.crypto.decrypt(user.config.meliRefresh);
       const { data } = await this.meliOauth.refreshAccessToken(refreshToken);
 
@@ -40,7 +40,7 @@ export class MeliGuard implements CanActivate {
 
       if ('error' in data) {
         console.log(data);
-        
+
         user.config.meliId = null;
         user.config.meliAccess = null;
         user.config.meliRefresh = null;
@@ -56,14 +56,17 @@ export class MeliGuard implements CanActivate {
 
       await this.usersService.save(user);
 
-      user.config.meliAccess = data.access_token
-      user.config.meliRefresh = data.refresh_token
+      user.config.meliAccess = data.access_token;
+      user.config.meliRefresh = data.refresh_token;
 
       return true;
     }
 
     user.config.meliAccess = this.crypto.decrypt(user.config.meliAccess);
     user.config.meliRefresh = this.crypto.decrypt(user.config.meliRefresh);
+
+    console.log(user.config.meliAccess);
+    console.log(user.config.meliId);
 
     return true;
   }
