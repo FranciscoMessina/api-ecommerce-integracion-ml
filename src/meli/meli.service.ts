@@ -140,14 +140,6 @@ export class MeliService {
 
       const order = response.data as MeliOrder;
 
-      // console.log({ order});
-
-      // await this.mailService.sendMail({
-      //   to: 'fm230499@gmail.com',
-      //   from: 'razioner72@gmail.com',
-      //   text: JSON.stringify(order),
-      //   subject: 'order'
-      // });
 
       if (order === undefined) return;
 
@@ -197,12 +189,7 @@ export class MeliService {
       }
     } catch (err) {
       console.log({ err });
-      // await this.mailService.sendMail({
-      //   from: 'razioner72@gmail.com',
-      //   to: 'fm230499@gmail.com',
-      //   text: JSON.stringify(err),
-      //   subject: 'Error',
-      // });
+
     }
   }
 
@@ -453,12 +440,6 @@ export class MeliService {
 
     if ('error' in response.data) throw new BadRequestException(response.data);
 
-    this.mails.sendMail({
-      to: 'fm230499@gmail.com',
-      from: 'razioner@gmail.com',
-      subject: 'New Meli Link',
-      text: JSON.stringify(response.data),
-    });
 
     user.config.meliAccess = this.crypto.encrypt(response.data.access_token);
     user.config.meliRefresh = this.crypto.encrypt(response.data.refresh_token);
