@@ -43,3 +43,4 @@ Algunas ideas que fui desarrollando, y planeo desarrollar más adelante fueron i
 - Docker Compose
 - PostgreSQL
 - Redis
+- Typescript
