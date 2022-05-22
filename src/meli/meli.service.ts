@@ -1,5 +1,6 @@
 import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { groupBy } from 'lodash';
 import { fromEvent } from 'rxjs';
 import { UsersService } from 'src/users/users.service';
 import { CryptoService } from 'src/utils/crypto';
@@ -121,7 +122,6 @@ export class MeliService {
 
     if (notification.topic === MeliNotificationTopic.ORDERS) {
       await this.handleOrderNotification(notification, user);
-      await this.emitter.emitAsync(`notif-${user.id}`, { data: { ...notification, id: user.id } });
     }
 
     if (notification.topic === MeliNotificationTopic.QUESTIONS) {
@@ -139,7 +139,6 @@ export class MeliService {
       if ('error' in response) return;
 
       const order = response.data as MeliOrder;
-
 
       if (order === undefined) return;
 
@@ -189,7 +188,8 @@ export class MeliService {
       }
     } catch (err) {
       console.log({ err });
-
+    } finally {
+      await this.emitter.emitAsync(`notif-${user.id}`, { data: { ...notification, id: user.id } });
     }
   }
 
@@ -343,9 +343,99 @@ export class MeliService {
       offset: options.offset || 0,
     });
 
-    // return data
-
     if (typeof data.questions === undefined) throw new BadRequestException();
+
+    // const groupedData = groupBy(data.questions, 'item_id');
+
+    // const dataToSend: any[] = [];
+
+    // for (const key in groupedData) {
+    //   const { data: item } = await this.meli.getItem(key, [
+    //     'id',
+    //     'title',
+    //     'price',
+    //     'available_quantity',
+    //     'permalink',
+    //     'secure_thumbnail',
+    //     'shipping',
+    //     'status',
+    //     'attributes',
+    //   ]);
+
+    //   if ('error' in item) throw new BadRequestException(item);
+
+    //   const mappedQuestionsWithPrevious = await Promise.all(
+    //     groupedData[key].map(async (question) => {
+    //       const { data: answeredQuestions } = await this.meli.getQuestions({
+    //         status: 'ANSWERED',
+    //         from: question.from.id,
+    //         item: question.item_id,
+    //       });
+
+    //       const { data: buyer } = await this.meli.getUserInfo(question.from.id);
+
+    //       const minifiedPreviousQuestions = answeredQuestions.questions.map((question: AnsweredQuestion) => {
+    //         const quest = {
+    //           text: question.text,
+    //           answer: {
+    //             text: question.answer.text,
+    //             date_created: question.answer.date_created,
+    //           },
+    //           date_created: question.date_created,
+    //           status: question.status,
+    //         };
+
+    //         return quest;
+    //       });
+
+    //       const finalData = {
+    //         ...question,
+    //         previous: {
+    //           limit: answeredQuestions.limit,
+    //           total: answeredQuestions.total,
+    //           offset: answeredQuestions.filters.offset,
+    //           results: minifiedPreviousQuestions,
+    //         },
+    //         from: {
+    //           id: buyer.id,
+    //           nickname: buyer.nickname,
+    //           city: buyer.address.city,
+    //         },
+    //       };
+
+    //       return finalData;
+    //     }),
+    //   );
+
+    //   const SKU = item.attributes.find((attr) => attr.id === 'SELLER_SKU');
+
+    //   const condition = item.attributes.find((attr) => attr.id === 'ITEM_CONDITION');
+
+    //   dataToSend.push({
+    //     id: item.id,
+    //     questions: mappedQuestionsWithPrevious,
+    //     item: {
+    //       id: item.id,
+    //       title: item.title,
+    //       price: item.price,
+    //       available_quantity: item.available_quantity,
+    //       permalink: item.permalink,
+    //       secure_thubmnail: item.secure_thumbnail,
+    //       shipping: item.shipping,
+    //       status: item.status,
+    //       condition,
+    //       SKU,
+    //     },
+    //   });
+    // }
+
+    // return {
+    //   offset: data.filters.offset,
+    //   limit: data.limit,
+    //   total: data.total,
+    //   next: data.limit + data.filters.offset < data.total ? `/meli/questions?offset=${data.limit + data.filters.offset}` : '',
+    //   results: dataToSend,
+    // };
 
     const mappedQuestionsWithPreviousAndUser = await Promise.all(
       data.questions.map(async (question: UnansweredQuestion) => {
@@ -439,7 +529,6 @@ export class MeliService {
     const response = await this.meliOauth.getAccessToken(code);
 
     if ('error' in response.data) throw new BadRequestException(response.data);
-
 
     user.config.meliAccess = this.crypto.encrypt(response.data.access_token);
     user.config.meliRefresh = this.crypto.encrypt(response.data.refresh_token);
