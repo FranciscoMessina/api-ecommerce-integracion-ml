@@ -58,8 +58,8 @@ export class MeliController {
   }
 
   @Get('questions')
-  // @CacheKey('questions')
-  // @UseInterceptors(HttpCacheInterceptor)
+  @CacheKey('questions')
+  @UseInterceptors(HttpCacheInterceptor)
   getQuestions(@Query() query: QuestionsFiltersDto, @CurrentUser() user: User) {
     this.meliService.configure({
       meliId: user.config.meliId,
@@ -127,6 +127,16 @@ export class MeliController {
     return this.meliService.searchItems(q);
   }
 
+  @Get('items')
+  async getItems(@CurrentUser() user: User) {
+    this.meliService.configure({
+      meliId: user.config.meliId,
+      refresh: user.config.meliRefresh,
+      token: user.config.meliAccess,
+    });
+    return this.meliService.listItems();
+  }
+
   @Get('orders')
   async getOrders(@CurrentUser() user: User) {
     this.meliService.configure({
@@ -135,6 +145,16 @@ export class MeliController {
       token: user.config.meliAccess,
     });
     return this.meliService.getOrders();
+  }
+
+  @Post('publicar')
+  async publicar(@CurrentUser() user: User) {
+    this.meliService.configure({
+      meliId: user.config.meliId,
+      refresh: user.config.meliRefresh,
+      token: user.config.meliAccess,
+    });
+    return this.meliService.createItem();
   }
 
   @Public()

@@ -139,21 +139,15 @@ export interface SellerAddress {
   id?: number;
 }
 
-export interface Attribute {
-  id: string;
-  name: string;
-  value_id?: string;
-  value_name: string;
-  value_struct?: any;
-  values: Value[];
-  attribute_group_id?: string;
-  attribute_group_name?: string;
-}
 
 export interface Value {
   id?: string;
   name: string;
-  struct: Struct | null;
+  struct?: Struct | null;
+  metadata?: {
+    value?: boolean
+  }
+
 }
 
 export interface Struct {
@@ -218,4 +212,30 @@ export interface MeliItemSearchResponse {
 export interface GetItemsByIdsResponse {
   code: number;
   body: Partial<MeliItem>;
+}
+
+export interface Attribute {
+  id: string;
+  name: string;
+  tags?: {
+    [key: string]: any;
+    hidden?: boolean;
+    multivalued?: boolean;
+    required?: boolean;
+    variation_attribute?: boolean;
+    read_only?: boolean;
+    catalog_required?: boolean
+  };
+  hierarchy?: string
+  relevance?: number;
+  value_type?: string;
+  value_max_length?: number;
+  values?: Value[]
+  attribute_group_id?: string
+  attribute_group_name?: string
+  allowed_units?: Value[]
+  default_unit?: string;
+  tooltip?: string;
+  example?: string
+  hint?: string
 }

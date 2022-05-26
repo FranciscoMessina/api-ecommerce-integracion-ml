@@ -35,6 +35,58 @@ export class MeliService {
     return this.meli.configure(config);
   }
 
+  async createItem() {
+    const item = {
+      title: `Item de test - No Ofertar - Porfavor no ofertar ${Math.floor(Math.random() * 1000)}`,
+      category_id: 'MLA3530',
+      price: 500 + Math.floor(Math.random() * 1000),
+      currency_id: 'ARS',
+      available_quantity: Math.floor(Math.random() * 100),
+      buying_mode: 'buy_it_now',
+      condition: 'new',
+      listing_type_id: 'gold_special',
+      sale_terms: [
+        {
+          id: 'WARRANTY_TYPE',
+          value_name: 'Garantía del vendedor',
+        },
+        {
+          id: 'WARRANTY_TIME',
+          value_name: '90 días',
+        },
+      ],
+      pictures: [
+        {
+          source: 'http://mla-s2-p.mlstatic.com/968521-MLA20805195516_072016-O.jpg',
+        },
+      ],
+      attributes: [
+        {
+          id: 'BRAND',
+          value_name: 'Marca del producto',
+        },
+        {
+          id: 'EAN',
+          value_name: '7898095297749',
+        },
+      ],
+    };
+
+    try {
+      const res = await this.meli.createItem(item);
+
+      return res.data;
+    } catch (err) {
+      console.log(err);
+      return 'ERRORRRR';
+    }
+  }
+
+  async listItems() {
+    const res = await this.meli.listItems();
+    return res.data;
+  }
+
   async getQuestionsHistory(query: QuestionsFiltersDto) {
     const { data } = await this.meli.getQuestions({
       ...query,
@@ -282,9 +334,34 @@ export class MeliService {
 
     if ('error' in data) throw new BadRequestException(data);
 
-    const { data: items } = await this.meli.getItems(data.results, ['id', 'permalink', 'title', 'secure_thumbnail', 'price']);
+    let items;
+    if (data.results.length > 20) {
+      const { data: itemData1 } = await this.meli.getItems(data.results.slice(0, 19), [
+        'id',
+        'permalink',
+        'title',
+        'secure_thumbnail',
+        'price',
+      ]);
 
-    if ('error' in items) throw new BadRequestException(items);
+      const { data: itemData2 } = await this.meli.getItems(data.results.slice(20, 39), [
+        'id',
+        'permalink',
+        'title',
+        'secure_thumbnail',
+        'price',
+      ]);
+
+      if ('error' in itemData1 || 'error' in itemData2) throw new BadRequestException(items);
+
+      items = itemData1.concat(itemData2);
+    } else {
+      const { data: itemData } = await this.meli.getItems(data.results, ['id', 'permalink', 'title', 'secure_thumbnail', 'price']);
+
+      if ('error' in itemData) throw new BadRequestException(items);
+
+      items = itemData;
+    }
 
     return {
       paging: data.paging,
@@ -481,7 +558,7 @@ export class MeliService {
 
         const condition = item.attributes.find((attr) => attr.id === 'ITEM_CONDITION');
 
-        const finalData = {
+        return {
           ...question,
           item: {
             id: item.id,
@@ -489,7 +566,7 @@ export class MeliService {
             price: item.price,
             available_quantity: item.available_quantity,
             permalink: item.permalink,
-            secure_thubmnail: item.secure_thumbnail,
+            secure_thumbnail: item.secure_thumbnail,
             shipping: item.shipping,
             status: item.status,
             condition,
@@ -507,8 +584,6 @@ export class MeliService {
             city: buyer.address.city,
           },
         };
-
-        return finalData;
       }),
     );
 

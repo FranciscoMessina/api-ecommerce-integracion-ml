@@ -71,9 +71,9 @@ export class MeliFunctions {
   }
 
   resetConfig() {
-    this.token = '';
-    this.refreshToken = '';
-    this.sellerId = 0;
+    this.token = undefined;
+    this.refreshToken = undefined;
+    this.sellerId = undefined;
   }
 
   async getQuestionsResponseTime(): Promise<AxiosResponse<QuestionsResponseTime | MeliApiError>> {
@@ -93,8 +93,7 @@ export class MeliFunctions {
 
   /**
    * Get seller questions, if no filters passed, defaults to all unanswered questions
-   *
-   * @param filters GetQuestionsFilters
+   * @param {GetQuestionsFilters} filters 
    * Only pass one of the filters, the only acceptable combination is From and Item, the rest must be individual
    */
   async getQuestions(filters?: GetQuestionsFilters): Promise<AxiosResponse<any | MeliApiError>> {
@@ -193,7 +192,7 @@ export class MeliFunctions {
     }
   }
 
-  async publishItem(itemInfo: any) {
+  async createItem(itemInfo: any) {
     try {
       const response = await this.httpInstance.post('/items', itemInfo);
 
@@ -302,6 +301,17 @@ export class MeliFunctions {
 
     try {
       const response = await this.httpInstance.get<MeliItem>(`/items/${itemId}`, { params });
+
+      return response;
+    } catch (error) {
+      const axiosError = error as AxiosError<MeliApiError>;
+      return axiosError.response;
+    }
+  }
+
+  async listItems() {
+    try {
+      const response = await this.httpInstance.get(`/users/${this.sellerId}/items/search?status=active`);
 
       return response;
     } catch (error) {

@@ -65,8 +65,8 @@ export class MeliGuard implements CanActivate {
     user.config.meliAccess = this.crypto.decrypt(user.config.meliAccess);
     user.config.meliRefresh = this.crypto.decrypt(user.config.meliRefresh);
 
-    console.log(user.config.meliAccess);
-    console.log(user.config.meliId);
+    // console.log(user.config.meliAccess);
+    // console.log(user.config.meliId);
 
     return true;
   }
