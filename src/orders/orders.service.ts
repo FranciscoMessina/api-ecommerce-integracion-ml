@@ -34,7 +34,7 @@ export class OrdersService {
     const mappedOrders = await Promise.all(
       orders.map(async (order) => {
         const meliItems: any = {};
-        if (order.saleChannel === SaleChannel.ML) {
+        if (order.saleChannel === SaleChannel.ML || order.saleChannel === SaleChannel.MS) {
           const res = await this.meli.getItems(
             order.items.map((item) => item.id),
             ['title', 'secure_thumbnail', 'condition', 'id', 'permalink'],
