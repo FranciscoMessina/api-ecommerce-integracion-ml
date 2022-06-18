@@ -117,7 +117,6 @@ export class MeliService {
       meliId: user.config.meliId,
     });
 
-    await this.emitter.emitAsync(`notif-${user.id}`, { data: { string: 'hello' } });
 
     if (notification.topic === MeliNotificationTopic.ORDERS) {
       await this.handleOrderNotification(notification, user);
@@ -399,7 +398,7 @@ export class MeliService {
             price: item.price,
             available_quantity: item.available_quantity,
             permalink: item.permalink,
-            secure_thubmnail: item.secure_thumbnail,
+            secure_thumbnail: item.secure_thumbnail,
             shipping: item.shipping,
             status: item.status,
             condition,

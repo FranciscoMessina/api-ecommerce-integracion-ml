@@ -58,8 +58,6 @@ export class MeliController {
   }
 
   @Get('questions')
-  @CacheKey('questions')
-  @UseInterceptors(HttpCacheInterceptor)
   getQuestions(@Query() query: QuestionsFiltersDto, @CurrentUser() user: User) {
     this.meliService.configure({
       meliId: user.config.meliId,

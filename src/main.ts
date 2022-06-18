@@ -10,13 +10,13 @@ import * as morgan from 'morgan';
 import * as path from 'path';
 
 async function bootstrap() {
-  const httpsOptions = {
-    cert: fs.readFileSync(path.join(__dirname, '../.cert/cert.pem'), 'utf-8'),
-    key: fs.readFileSync(path.join(__dirname, '../.cert/key.pem'), 'utf-8'),
-  };
+  // const httpsOptions = {
+  //   cert: fs.readFileSync(path.join(__dirname, '../.cert/cert.pem'), 'utf-8'),
+  //   key: fs.readFileSync(path.join(__dirname, '../.cert/key.pem'), 'utf-8'),
+  // };
 
   // const server = express();
-  const app = await NestFactory.create(AppModule, { httpsOptions });
+  const app = await NestFactory.create(AppModule);
 
   const config = app.get(ConfigService);
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
