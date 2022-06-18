@@ -1,21 +1,18 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
-
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity()
 export class Invoice {
+  @PrimaryGeneratedColumn()
+  id: number;
 
-   @PrimaryGeneratedColumn()
-   id: number
+  @Column()
+  invoiceId: string;
 
-   @Column()
-   invoiceId: string
-
-   @Column({ type: 'jsonb', nullable: false })
-   products: {
-      id: string;
-      title: string;
-      price: number;
-      quantity: number;
-   }[]
-   
+  @Column({ type: 'jsonb', nullable: false })
+  products: {
+    id: string;
+    title: string;
+    price: number;
+    quantity: number;
+  }[];
 }
