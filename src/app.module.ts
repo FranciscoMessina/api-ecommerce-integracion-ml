@@ -14,6 +14,8 @@ import { MeliModule } from './meli/meli.module';
 import { OrdersModule } from './orders/orders.module';
 import { UsersModule } from './users/users.module';
 import { UtilsModule } from './utils/utils.module';
+import { ItemsModule } from './items/items.module';
+import { BillingModule } from './billing/billing.module';
 
 const validationSchema = Joi.object({
   MELI_CLIENT_ID: Joi.number().required(),
@@ -74,6 +76,8 @@ const validationSchema = Joi.object({
     AuthModule,
     UtilsModule,
     OrdersModule,
+    ItemsModule,
+    BillingModule,
   ],
   controllers: [AppController],
 })

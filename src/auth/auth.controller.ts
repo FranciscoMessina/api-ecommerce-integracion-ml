@@ -12,13 +12,13 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('/signup')
-  async create(@Body() createUserDto: CreateUserDto, @Res({ passthrough: true }) res: Response) {
+  async signUp(@Body() createUserDto: CreateUserDto, @Res({ passthrough: true }) res: Response) {
     const { id, accessToken, refreshToken, roles } = await this.authService.signUp(createUserDto);
 
     res.cookie('jwt', refreshToken, {
       httpOnly: true,
       secure: true,
-      maxAge: 1000 * 60 * 60 * 24,
+      maxAge: 2592000000, // 1 month,
       sameSite: 'lax',
     });
 
@@ -38,7 +38,7 @@ export class AuthController {
     res.cookie('jwt', refreshToken, {
       httpOnly: true,
       secure: true,
-      maxAge: 1000 * 60 * 60 * 24,
+      maxAge: 2592000000, // 1 month,
       sameSite: 'lax',
     });
 
@@ -63,7 +63,7 @@ export class AuthController {
       res.clearCookie('jwt', {
         httpOnly: true,
         secure: true,
-        maxAge: 1000 * 60 * 60 * 24,
+        maxAge: 2592000000, // 1 month,
         sameSite: 'lax',
       });
       return;
