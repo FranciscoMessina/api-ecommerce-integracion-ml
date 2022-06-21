@@ -42,7 +42,7 @@ export class Order {
    },
    to: (value) => value
   } })
-  shippingId: bigint;
+  shippingId: number;
 
   @Column({ type: 'enum', enum: InvoiceStatus, default: InvoiceStatus.Pending })
   invoiceStatus: InvoiceStatus;

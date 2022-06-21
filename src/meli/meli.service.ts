@@ -236,7 +236,7 @@ export class MeliService {
             last_name: order.buyer.last_name,
           },
           shippingId: order.shipping.id || null,
-          // cartId: order.pack_id || null,
+          cartId: order.pack_id || null,
           items: order.order_items.map((item) => ({
             id: item.item.id,
             quantity: item.quantity,
