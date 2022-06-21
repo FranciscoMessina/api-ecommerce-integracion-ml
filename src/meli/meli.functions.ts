@@ -156,18 +156,11 @@ export class MeliFunctions {
   }
 
   async getQuestionsResponseTime(): Promise<AxiosResponse<QuestionsResponseTime | MeliApiError>> {
-    // try {
+
     const response = await this.request.get<QuestionsResponseTime>(`${this.sellerId}/questions/response_time`);
 
     return response;
-    // } catch (error) {
-    //    console.log(error);
-    //    if (error.isAxiosError) {
-    //       return error.response;
-    //    }
 
-    //    throw error;
-    // }
   }
 
   /**
@@ -212,16 +205,9 @@ export class MeliFunctions {
 
     // try {
     const response = await this.request.get(url, { params });
-    // console.log(response);
 
     return response;
-    // } catch (error) {
-    //    if (error.isAxiosError) {
-    //       return error.response;
-    //    }
 
-    //    throw error;
-    // }
   }
 
   async answerQuestion({ id, answer }: { id: number; answer: string }) {
@@ -232,28 +218,14 @@ export class MeliFunctions {
     });
 
     return response;
-    // } catch (error) {
-    // console.log(error);
-    //    if (error.isAxiosError) {
-    //       return error.response;
-    //    }
 
-    //    throw error;
-    // }
   }
 
   async deleteQuestion(questionId: number) {
     // try {
     const response = await this.request.delete(`/questions/${questionId}`);
-    return response;
-    // } catch (error) {
-    //    console.log(error);
-    //    if (error.isAxiosError) {
-    //       return error.response;
-    //    }
 
-    //    throw error;
-    // }
+    return response;
   }
 
   async searchForItems(searchQuery: string) {
@@ -261,14 +233,7 @@ export class MeliFunctions {
     const response = await this.request.get<MeliItemSearchResponse>(`/users/${this.sellerId}/items/search?q=${searchQuery}&status=active`);
 
     return response;
-    // } catch (error) {
-    //    console.log(error);
-    //    if (error.isAxiosError) {
-    //       return error.response;
-    //    }
 
-    //    throw error;
-    // }
   }
 
   async createItem(itemInfo: any) {
@@ -276,14 +241,7 @@ export class MeliFunctions {
     const response = await this.request.post('/items', itemInfo);
 
     return response;
-    // } catch (error) {
-    //    console.log(error);
-    //    if (error.isAxiosError) {
-    //       return error.response;
-    //    }
 
-    //    throw error;
-    // }
   }
 
   async addDescription(itemId: string, description: string) {
@@ -293,14 +251,7 @@ export class MeliFunctions {
     });
 
     return response;
-    // } catch (error) {
-    //    console.log(error);
-    //    if (error.isAxiosError) {
-    //       return error.response;
-    //    }
 
-    //    throw error;
-    // }
   }
 
   async pauseItem(itemId: string): Promise<AxiosResponse<any | MeliApiError>> {
@@ -309,14 +260,7 @@ export class MeliFunctions {
 
     // console.log(response);
     return response;
-    // } catch (error) {
-    //    console.log(error);
-    //    if (error.isAxiosError) {
-    //       return error.response;
-    //    }
 
-    //    throw error;
-    // }
   }
 
   async activateItem(itemId: string): Promise<AxiosResponse<any | MeliApiError>> {
@@ -324,14 +268,7 @@ export class MeliFunctions {
     const response = await this.request.put(`/items/${itemId}`, { status: 'active' });
 
     return response;
-    // } catch (error) {
-    //    console.log(error);
-    //    if (error.isAxiosError) {
-    //       return error.response;
-    //    }
 
-    //    throw error;
-    // }
   }
 
   async changeItemStock(itemId: string, newStock: number) {
@@ -339,14 +276,7 @@ export class MeliFunctions {
     const response = await this.request.put(`/items/${itemId}`, { available_quantity: newStock });
 
     return response;
-    // } catch (error) {
-    //    console.log(error);
-    //    if (error.isAxiosError) {
-    //       return error.response;
-    //    }
 
-    //    throw error;
-    // }
   }
 
   async getItems(ids: string[], attrs?: ItemAttributes[]): Promise<AxiosResponse<GetItemsByIdsResponse[] | MeliApiError>> {
@@ -362,14 +292,7 @@ export class MeliFunctions {
     const response = await this.request.get<GetItemsByIdsResponse[]>(`/items`, { params });
 
     return response;
-    // } catch (error) {
-    //    console.log(error);
-    //    if (error.isAxiosError) {
-    //       return error.response;
-    //    }
 
-    //    throw error;
-    // }
   }
 
   async getItem(itemId: string, attrs?: ItemAttributes[]): Promise<AxiosResponse<Partial<MeliItem> | MeliApiError>> {
@@ -382,10 +305,7 @@ export class MeliFunctions {
     const response = await this.request.get<MeliItem>(`/items/${itemId}`, { params });
 
     return response;
-    // } catch (error) {
-    //    const axiosError = error as AxiosError<MeliApiError>;
-    //    return axiosError.response;
-    // }
+
   }
 
   async listItems() {
@@ -393,10 +313,7 @@ export class MeliFunctions {
     const response = await this.request.get(`/users/${this.sellerId}/items/search?status=active`);
 
     return response;
-    // } catch (error) {
-    //    const axiosError = error as AxiosError<MeliApiError>;
-    //    return axiosError.response;
-    // }
+
   }
 
   async getUserInfo(buyerId: number) {
@@ -405,14 +322,7 @@ export class MeliFunctions {
     // console.log(response);
 
     return response;
-    // } catch (error) {
-    //    console.log(error);
-    //    if (error.isAxiosError) {
-    //       return error.response;
-    //    }
 
-    //    throw error;
-    // }
   }
 
   async getOrders(filters?: string) {
@@ -439,14 +349,7 @@ export class MeliFunctions {
     // console.log(response);
 
     return response;
-    // } catch (error) {
-    //    console.log(error);
-    //    if (error.isAxiosError) {
-    //       return error.response;
-    //    }
 
-    //    throw error;
-    // }
   }
 
   async getOrderInfo(orderId: number) {
@@ -454,14 +357,7 @@ export class MeliFunctions {
     const response = await this.request.get<MeliOrder>(`/orders/${orderId}`);
 
     return response;
-    // } catch (error) {
-    //    console.log(error);
-    //    if (error.isAxiosError) {
-    //       return error.response;
-    //    }
 
-    //    throw error;
-    // }
   }
 
   async getOrderMessages(orderId: number) {
@@ -469,14 +365,7 @@ export class MeliFunctions {
     const response = await this.request.get(`/messages/packs/${orderId}/sellers/${this.sellerId}?mark_as_read=false&tag=post_sale`);
 
     return response;
-    // } catch (error) {
-    //    console.log(error);
-    //    if (error.isAxiosError) {
-    //       return error.response;
-    //    }
 
-    //    throw error;
-    // }
   }
 
   async sendMessage(options: MeliSendMessageOptions) {
@@ -492,14 +381,7 @@ export class MeliFunctions {
     });
 
     return response;
-    // } catch (error) {
-    //    console.log(error);
-    //    if (error.isAxiosError) {
-    //       return error.response;
-    //    }
 
-    //    throw error;
-    // }
   }
 
   async getResource(resource: string): Promise<AxiosResponse<any | MeliApiError>> {
@@ -507,14 +389,7 @@ export class MeliFunctions {
     const response = await this.request.get(`${resource}`);
 
     return response;
-    // } catch (error) {
-    //    console.log(error);
-    //    if (error.isAxiosError) {
-    //       return error.response;
-    //    }
 
-    //    throw error;
-    // }
   }
 
   async getPackOrders(packId: number) {
@@ -522,15 +397,5 @@ export class MeliFunctions {
     const response = await this.request.get(`/packs/${packId}`);
 
     return response;
-    // } catch (error) {
-    //    console.log(error);
-    //    if (error.isAxiosError) {
-    //       return error.response;
-    //    }
-
-    //    throw error;
-    // }
   }
-
-
 }
