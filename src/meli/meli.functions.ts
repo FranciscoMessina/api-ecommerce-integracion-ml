@@ -279,18 +279,9 @@ export class MeliFunctions {
          params.append('attributes', attrs.join(','));
       }
 
-      // try {
       const response = await this.request.get<GetItemsByIdsResponse[]>(`/items`, { params });
 
       return response;
-      // } catch (error) {
-      //    console.log(error);
-      //    if (error.isAxiosError) {
-      //       return error.response;
-      //    }
-
-      //    throw error;
-      // }
    }
 
    async getItem(itemId: string, attrs?: ItemAttributes[]): Promise<AxiosResponse<Partial<MeliItem> | MeliApiError>> {
@@ -299,14 +290,9 @@ export class MeliFunctions {
          params.append('attributes', attrs.join(','));
       }
 
-      // try {s
       const response = await this.request.get<MeliItem>(`/items/${itemId}`, { params });
 
       return response;
-      // } catch (error) {
-      //    const axiosError = error as AxiosError<MeliApiError>;
-      //    return axiosError.response;
-      // }
    }
 
    async listItems() {
@@ -314,10 +300,6 @@ export class MeliFunctions {
       const response = await this.request.get(`/users/${this.sellerId}/items/search?status=active`);
 
       return response;
-      // } catch (error) {
-      //    const axiosError = error as AxiosError<MeliApiError>;
-      //    return axiosError.response;
-      // }
    }
 
    async getUserInfo(buyerId: number) {
@@ -326,14 +308,6 @@ export class MeliFunctions {
       // console.log(response);
 
       return response;
-      // } catch (error) {
-      //    console.log(error);
-      //    if (error.isAxiosError) {
-      //       return error.response;
-      //    }
-
-      //    throw error;
-      // }
    }
 
    async getOrders(filters?: string) {
@@ -360,14 +334,7 @@ export class MeliFunctions {
       // console.log(response);
 
       return response;
-      // } catch (error) {
-      //    console.log(error);
-      //    if (error.isAxiosError) {
-      //       return error.response;
-      //    }
 
-      //    throw error;
-      // }
    }
 
    async getOrderInfo(orderId: number) {
@@ -376,14 +343,7 @@ export class MeliFunctions {
       const response = await this.request.get<MeliOrder>(`/orders/${orderId}`);
 
       return response;
-      // } catch (error) {
-      //    console.log(error);
-      //    if (error.isAxiosError) {
-      //       return error.response;
-      //    }
 
-      //    throw error;
-      // }
 
    }
 
@@ -392,19 +352,12 @@ export class MeliFunctions {
       const response = await this.request.get(`/messages/packs/${orderId}/sellers/${this.sellerId}?mark_as_read=false?tag=post_sale`);
 
       return response;
-      // } catch (error) {
-      //    console.log(error);
-      //    if (error.isAxiosError) {
-      //       return error.response;
-      //    }
 
-      //    throw error;
-      // }
    }
 
    async sendMessage(options: MeliSendMessageOptions) {
       // try {
-      const response = await this.request.post(`/messages/packs/${options.msgGroupId}/sellers/${this.sellerId}?tag=post_sale`, {
+      const response = await this.request.post(`/messages/packs/${options.msgGroupId}/sellers/${this.sellerId}&tag=post_sale`, {
          from: {
             user_id: this.sellerId,
          },
@@ -415,14 +368,7 @@ export class MeliFunctions {
       });
 
       return response;
-      // } catch (error) {
-      //    console.log(error);
-      //    if (error.isAxiosError) {
-      //       return error.response;
-      //    }
 
-      //    throw error;
-      // }
    }
 
    async getResource(resource: string): Promise<AxiosResponse<any | MeliApiError>> {
@@ -430,14 +376,7 @@ export class MeliFunctions {
       const response = await this.request.get(`${resource}`);
 
       return response;
-      // } catch (error) {
-      //    console.log(error);
-      //    if (error.isAxiosError) {
-      //       return error.response;
-      //    }
 
-      //    throw error;
-      // }
    }
 
    async getPackOrders(packId: number) {
@@ -445,18 +384,11 @@ export class MeliFunctions {
       const response = await this.request.get(`/packs/${packId}`);
 
       return response;
-      // } catch (error) {
-      //    console.log(error);
-      //    if (error.isAxiosError) {
-      //       return error.response;
-      //    }
 
-      //    throw error;
-      // }
    }
 
-   private get request() {
-      const get = async <T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T> | AxiosResponse<MeliApiError>> => {
+   private request = {
+      get: async <T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T> | AxiosResponse<MeliApiError>> => {
          try {
             const response = await this.httpInstance.get(url, config);
 
@@ -469,9 +401,8 @@ export class MeliFunctions {
             }
             throw err
          }
-      }
-
-      async function post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T> | AxiosResponse<MeliApiError>> {
+      },
+     post: async <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T> | AxiosResponse<MeliApiError>> => {
          try {
             const response = await this.httpInstance.post(url, data, config);
 
@@ -484,9 +415,8 @@ export class MeliFunctions {
             }
             throw err
          }
-      }
-
-      const patch = async <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T> | AxiosResponse<MeliApiError>> => {
+      },
+      patch: async <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T> | AxiosResponse<MeliApiError>> => {
          try {
             const response = await this.httpInstance.patch(url, data, config);
 
@@ -499,9 +429,8 @@ export class MeliFunctions {
             }
             throw err
          }
-      }
-
-      const put = async <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T> | AxiosResponse<MeliApiError>> => {
+      },
+      put: async <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T> | AxiosResponse<MeliApiError>> => {
          try {
             const response = await this.httpInstance.put(url, data, config);
 
@@ -514,9 +443,9 @@ export class MeliFunctions {
             }
             throw err
          }
-      }
+      },
 
-      const _Delete = async <T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T> | AxiosResponse<MeliApiError>> => {
+      delete: async <T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T> | AxiosResponse<MeliApiError>> => {
          try {
             const response = await this.httpInstance.delete(url, config);
 
@@ -531,13 +460,5 @@ export class MeliFunctions {
          }
       }
 
-
-      return {
-         get,
-         post,
-         patch,
-         put,
-         delete: _Delete
-      }
    }
 }
