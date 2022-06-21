@@ -34,8 +34,8 @@ export class Order {
     price: number;
   }[];
 
-  @Column({ nullable: true})
-  shippingId: number
+  @Column({ nullable: true })
+  shippingId: number;
 
   @Column({ type: 'enum', enum: InvoiceStatus, default: InvoiceStatus.Pending })
   invoiceStatus: InvoiceStatus;

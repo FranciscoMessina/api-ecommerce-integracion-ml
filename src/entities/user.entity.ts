@@ -29,12 +29,12 @@ export class User {
 
   @OneToMany(() => QuickAnswer, (qa: QuickAnswer) => qa.user, {
     cascade: true,
-    onDelete: 'CASCADE'
+    onDelete: 'CASCADE',
   })
   quickAnswers?: QuickAnswer[];
 
   @OneToMany(() => Order, (order: Order) => order.user)
-  orders: Order[]
+  orders: Order[];
 
   @CreateDateColumn()
   createdAt: Date;

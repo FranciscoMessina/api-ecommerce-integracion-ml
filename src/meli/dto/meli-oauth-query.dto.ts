@@ -8,5 +8,5 @@ export class MeliOauthQueryDto {
   state?: string;
 
   @IsOptional()
-  error?: string
+  error?: string;
 }

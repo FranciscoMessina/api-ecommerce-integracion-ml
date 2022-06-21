@@ -139,15 +139,13 @@ export interface SellerAddress {
   id?: number;
 }
 
-
 export interface Value {
   id?: string;
   name: string;
   struct?: Struct | null;
   metadata?: {
-    value?: boolean
-  }
-
+    value?: boolean;
+  };
 }
 
 export interface Struct {
@@ -224,18 +222,18 @@ export interface Attribute {
     required?: boolean;
     variation_attribute?: boolean;
     read_only?: boolean;
-    catalog_required?: boolean
+    catalog_required?: boolean;
   };
-  hierarchy?: string
+  hierarchy?: string;
   relevance?: number;
   value_type?: string;
   value_max_length?: number;
-  values?: Value[]
-  attribute_group_id?: string
-  attribute_group_name?: string
-  allowed_units?: Value[]
+  values?: Value[];
+  attribute_group_id?: string;
+  attribute_group_name?: string;
+  allowed_units?: Value[];
   default_unit?: string;
   tooltip?: string;
-  example?: string
-  hint?: string
+  example?: string;
+  hint?: string;
 }

@@ -1,7 +1,7 @@
-declare module 'cache-manager-redis-store' { 
-    import { CacheStoreFactory } from "@nestjs/common";
+declare module 'cache-manager-redis-store' {
+  import { CacheStoreFactory } from '@nestjs/common';
 
-    const cacheStore: CacheStoreFactory;
+  const cacheStore: CacheStoreFactory;
 
-    export = cacheStore
+  export = cacheStore;
 }
