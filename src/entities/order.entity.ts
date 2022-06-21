@@ -34,8 +34,15 @@ export class Order {
     price: number;
   }[];
 
-  @Column({ nullable: true })
-  shippingId: number;
+  @Column({ nullable: true, type: 'bigint', transformer: {
+   from(value) {
+      if(!value) return value;
+
+      return parseInt(value, 10)
+   },
+   to: (value) => value
+  } })
+  shippingId: bigint;
 
   @Column({ type: 'enum', enum: InvoiceStatus, default: InvoiceStatus.Pending })
   invoiceStatus: InvoiceStatus;
