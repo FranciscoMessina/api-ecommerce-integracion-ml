@@ -466,7 +466,7 @@ export class MeliFunctions {
 
   async getOrderMessages(orderId: number) {
     // try {
-    const response = await this.request.get(`/messages/packs/${orderId}/sellers/${this.sellerId}?mark_as_read=false?tag=post_sale`);
+    const response = await this.request.get(`/messages/packs/${orderId}/sellers/${this.sellerId}?mark_as_read=false&tag=post_sale`);
 
     return response;
     // } catch (error) {

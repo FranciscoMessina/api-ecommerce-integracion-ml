@@ -178,7 +178,6 @@ export class MeliService {
       meliId: user.config.meliId,
     });
 
-    await this.emitter.emitAsync(`notif-${user.id}`, { data: { string: 'hello' } });
 
     if (notification.topic === MeliNotificationTopic.ORDERS) {
       await this.handleOrderNotification(notification, user);
