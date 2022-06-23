@@ -12,60 +12,57 @@ import { MeliOauth } from './meli.oauth.js';
 
 @Injectable()
 export class MeliFunctions {
-  private token: string;
+   private token: string;
 
-  public sellerId: number;
+   public sellerId: number;
 
-  private refreshToken: string;
+   private refreshToken: string;
 
-  private httpInstance = axios.create();
+   private httpInstance = axios.create();
 
-  constructor(private readonly config: ConfigService, private readonly emitter: EventEmitter2, private readonly meliOauth: MeliOauth) {
-    this.httpInstance.defaults.baseURL = this.config.get('MELI_API_URL');
+   constructor(private readonly config: ConfigService, private readonly emitter: EventEmitter2, private readonly meliOauth: MeliOauth) {
+      this.httpInstance.defaults.baseURL = this.config.get('MELI_API_URL');
 
-    this.httpInstance.interceptors.request.use((config) => {
-      if (config.headers['Authorization'] !== this.token) {
-        config.headers['Authorization'] = `Bearer ${this.token}`;
-      }
-      return config;
-    });
+      this.httpInstance.interceptors.request.use((config) => {
+         if (config.headers['Authorization'] !== this.token) {
+            config.headers['Authorization'] = `Bearer ${this.token}`;
+         }
+         return config;
+      });
 
-    this.httpInstance.interceptors.response.use(
-      (res) => res,
-      async (error) => {
-        const prevRequest = error?.config;
+      this.httpInstance.interceptors.response.use(
+         (res) => res,
+         async (error) => {
+            const prevRequest = error?.config;
 
-        const errorCodes = [401];
+            const errorCodes = [401];
 
-        if (errorCodes.includes(error?.response?.status) && !prevRequest?.sent) {
-          prevRequest.sent = true;
-          console.log('refreshing after request error');
+            if (errorCodes.includes(error?.response?.status) && !prevRequest?.sent) {
+               prevRequest.sent = true;
+               console.log('refreshing after request error');
 
-          const refreshResponse = await this.meliOauth.refreshAccessToken(this.refreshToken);
+               const refreshResponse = await this.meliOauth.refreshAccessToken(this.refreshToken);
 
-          if ('error' in refreshResponse.data) {
-            throw new UnauthorizedException({
-              message: 'Please link meli again',
-              action: ErrorActions.LinkMeli,
-            });
-          }
+               if ('error' in refreshResponse.data) {
+                  throw new UnauthorizedException({
+                     message: 'Please link meli again',
+                     action: ErrorActions.LinkMeli,
+                  });
+               }
 
-          this.token = refreshResponse.data.access_token;
-          this.refreshToken = refreshResponse.data.refresh_token;
-          prevRequest.headers['Authorization'] = `Bearer ${this.token}`;
+               this.token = refreshResponse.data.access_token;
+               this.refreshToken = refreshResponse.data.refresh_token;
+               prevRequest.headers['Authorization'] = `Bearer ${this.token}`;
 
-          await this.emitter.emitAsync('meli.tokens.update', refreshResponse.data);
+               await this.emitter.emitAsync('meli.tokens.update', refreshResponse.data);
 
-          return this.httpInstance(prevRequest);
-        }
+               return this.httpInstance(prevRequest);
+            }
 
-        return Promise.reject(error);
-      },
-    );
-  }
-
-
-
+            return Promise.reject(error);
+         },
+      );
+   }
 
    private request = {
       get: async <T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T> | AxiosResponse<MeliApiError>> => {
@@ -82,7 +79,7 @@ export class MeliFunctions {
             throw err
          }
       },
-     post: async <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T> | AxiosResponse<MeliApiError>> => {
+      post: async <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T> | AxiosResponse<MeliApiError>> => {
          try {
             const response = await this.httpInstance.post(url, data, config);
 
@@ -141,261 +138,261 @@ export class MeliFunctions {
       }
 
    }
-      
 
-  configure(config: { token: string; refresh: string; meliId: number }) {
-    this.token = config.token;
-    this.refreshToken = config.refresh;
-    this.sellerId = config.meliId;
-  }
 
-  resetConfig() {
-    this.token = undefined;
-    this.refreshToken = undefined;
-    this.sellerId = undefined;
-  }
+   configure(config: { token: string; refresh: string; meliId: number }) {
+      this.token = config.token;
+      this.refreshToken = config.refresh;
+      this.sellerId = config.meliId;
+   }
 
-  async getQuestionsResponseTime(): Promise<AxiosResponse<QuestionsResponseTime | MeliApiError>> {
+   resetConfig() {
+      this.token = undefined;
+      this.refreshToken = undefined;
+      this.sellerId = undefined;
+   }
 
-    const response = await this.request.get<QuestionsResponseTime>(`${this.sellerId}/questions/response_time`);
+   async getQuestionsResponseTime(): Promise<AxiosResponse<QuestionsResponseTime | MeliApiError>> {
 
-    return response;
+      const response = await this.request.get<QuestionsResponseTime>(`${this.sellerId}/questions/response_time`);
 
-  }
+      return response;
 
-  /**
-   * Get seller questions, if no filters passed, defaults to first 25 unanswered questions
-   * @param {GetQuestionsFilters} filters
-   * Only pass one of the filters, the only acceptable combination is From and Item, the rest must be individual
-   */
-  async getQuestions(filters?: GetQuestionsFilters): Promise<AxiosResponse<any | MeliApiError>> {
-    const params = new URLSearchParams();
+   }
 
-    let url = `/questions/search`;
+   /**
+    * Get seller questions, if no filters passed, defaults to first 25 unanswered questions
+    * @param {GetQuestionsFilters} filters
+    * Only pass one of the filters, the only acceptable combination is From and Item, the rest must be individual
+    */
+   async getQuestions(filters?: GetQuestionsFilters): Promise<AxiosResponse<any | MeliApiError>> {
+      const params = new URLSearchParams();
 
-    if (filters?.from && filters.item) {
-      params.append('from', filters.from.toString());
-      params.append('item', filters.item);
+      let url = `/questions/search`;
 
-      url = `/questions/search`;
-    } else {
-      params.append('seller_id', this.sellerId.toString());
-    }
+      if (filters?.from && filters.item) {
+         params.append('from', filters.from.toString());
+         params.append('item', filters.item);
 
-    if (filters?.status) {
-      params.append('status', filters.status);
-    } else {
-      params.append('status', 'UNANSWERED');
-    }
+         url = `/questions/search`;
+      } else {
+         params.append('seller_id', this.sellerId.toString());
+      }
 
-    if (filters?.sort) {
-      params.append('sort_types', filters.sort.order);
-      params.append('sort_fields', filters.sort.fields);
-    }
+      if (filters?.status) {
+         params.append('status', filters.status);
+      } else {
+         params.append('status', 'UNANSWERED');
+      }
 
-    params.append('limit', filters?.limit?.toString() || '25');
-    params.append('offset', filters?.offset?.toString() || '0');
+      if (filters?.sort) {
+         params.append('sort_types', filters.sort.order);
+         params.append('sort_fields', filters.sort.fields);
+      }
 
-    if (filters?.questionId) {
-      url = `/questions/${filters.questionId}`;
-      params.delete('*');
-    }
+      params.append('limit', filters?.limit?.toString() || '25');
+      params.append('offset', filters?.offset?.toString() || '0');
 
-    params.append('api_version', '4');
+      if (filters?.questionId) {
+         url = `/questions/${filters.questionId}`;
+         params.delete('*');
+      }
 
-    // try {
-    const response = await this.request.get(url, { params });
+      params.append('api_version', '4');
 
-    return response;
+      // try {
+      const response = await this.request.get(url, { params });
 
-  }
+      return response;
 
-  async answerQuestion({ id, answer }: { id: number; answer: string }) {
-    // try {
-    const response = await this.request.post(`/answers`, {
-      question_id: id,
-      text: answer,
-    });
+   }
 
-    return response;
+   async answerQuestion({ id, answer }: { id: number; answer: string }) {
+      // try {
+      const response = await this.request.post(`/answers`, {
+         question_id: id,
+         text: answer,
+      });
 
-  }
+      return response;
 
-  async deleteQuestion(questionId: number) {
-    // try {
-    const response = await this.request.delete(`/questions/${questionId}`);
+   }
 
-    return response;
-  }
+   async deleteQuestion(questionId: number) {
+      // try {
+      const response = await this.request.delete(`/questions/${questionId}`);
 
-  async searchForItems(searchQuery: string) {
-    // try {
-    const response = await this.request.get<MeliItemSearchResponse>(`/users/${this.sellerId}/items/search?q=${searchQuery}&status=active`);
+      return response;
+   }
 
-    return response;
+   async searchForItems(searchQuery: string) {
+      // try {
+      const response = await this.request.get<MeliItemSearchResponse>(`/users/${this.sellerId}/items/search?q=${searchQuery}&status=active`);
 
-  }
+      return response;
 
-  async createItem(itemInfo: any) {
-    // try {
-    const response = await this.request.post('/items', itemInfo);
+   }
 
-    return response;
+   async createItem(itemInfo: any) {
+      // try {
+      const response = await this.request.post('/items', itemInfo);
 
-  }
+      return response;
 
-  async addDescription(itemId: string, description: string) {
-    // try {
-    const response = await this.request.post(`/items/${itemId}/description`, {
-      plain_text: description,
-    });
+   }
 
-    return response;
+   async addDescription(itemId: string, description: string) {
+      // try {
+      const response = await this.request.post(`/items/${itemId}/description`, {
+         plain_text: description,
+      });
 
-  }
+      return response;
 
-  async pauseItem(itemId: string): Promise<AxiosResponse<any | MeliApiError>> {
-    // try {
-    const response = await this.request.put(`/items/${itemId}`, { status: 'paused' });
+   }
 
-    // console.log(response);
-    return response;
+   async pauseItem(itemId: string): Promise<AxiosResponse<any | MeliApiError>> {
+      // try {
+      const response = await this.request.put(`/items/${itemId}`, { status: 'paused' });
 
-  }
+      // console.log(response);
+      return response;
 
-  async activateItem(itemId: string): Promise<AxiosResponse<any | MeliApiError>> {
-    // try {
-    const response = await this.request.put(`/items/${itemId}`, { status: 'active' });
+   }
 
-    return response;
+   async activateItem(itemId: string): Promise<AxiosResponse<any | MeliApiError>> {
+      // try {
+      const response = await this.request.put(`/items/${itemId}`, { status: 'active' });
 
-  }
+      return response;
 
-  async changeItemStock(itemId: string, newStock: number) {
-    // try {
-    const response = await this.request.put(`/items/${itemId}`, { available_quantity: newStock });
+   }
 
-    return response;
+   async changeItemStock(itemId: string, newStock: number) {
+      // try {
+      const response = await this.request.put(`/items/${itemId}`, { available_quantity: newStock });
 
-  }
+      return response;
 
-  async getItems(ids: string[], attrs?: ItemAttributes[]): Promise<AxiosResponse<GetItemsByIdsResponse[] | MeliApiError>> {
-    const params = new URLSearchParams();
+   }
 
-    params.append('ids', ids.join(','));
+   async getItems(ids: string[], attrs?: ItemAttributes[]): Promise<AxiosResponse<GetItemsByIdsResponse[] | MeliApiError>> {
+      const params = new URLSearchParams();
 
-    if (attrs) {
-      params.append('attributes', attrs.join(','));
-    }
+      params.append('ids', ids.join(','));
 
-    // try {
-    const response = await this.request.get<GetItemsByIdsResponse[]>(`/items`, { params });
+      if (attrs) {
+         params.append('attributes', attrs.join(','));
+      }
 
-    return response;
+      // try {
+      const response = await this.request.get<GetItemsByIdsResponse[]>(`/items`, { params });
 
-  }
+      return response;
 
-  async getItem(itemId: string, attrs?: ItemAttributes[]): Promise<AxiosResponse<Partial<MeliItem> | MeliApiError>> {
-    const params = new URLSearchParams();
-    if (attrs) {
-      params.append('attributes', attrs.join(','));
-    }
+   }
 
-    // try {s
-    const response = await this.request.get<MeliItem>(`/items/${itemId}`, { params });
+   async getItem(itemId: string, attrs?: ItemAttributes[]): Promise<AxiosResponse<Partial<MeliItem> | MeliApiError>> {
+      const params = new URLSearchParams();
+      if (attrs) {
+         params.append('attributes', attrs.join(','));
+      }
 
-    return response;
+      // try {s
+      const response = await this.request.get<MeliItem>(`/items/${itemId}`, { params });
 
-  }
+      return response;
 
-  async listItems() {
-    // try {
-    const response = await this.request.get(`/users/${this.sellerId}/items/search?status=active`);
+   }
 
-    return response;
+   async listItems() {
+      // try {
+      const response = await this.request.get(`/users/${this.sellerId}/items/search?status=active`);
 
-  }
+      return response;
 
-  async getUserInfo(buyerId: number) {
-    // try {
-    const response = await this.request.get(`/users/${buyerId}`);
-    // console.log(response);
+   }
 
-    return response;
+   async getUserInfo(userId: number) {
+      // try {
+      const response = await this.request.get(`/users/${userId}`);
+      // console.log(response);
 
-  }
+      return response;
 
-  async getOrders(filters?: string) {
-    let url;
+   }
 
-    switch (filters) {
-      case 'recent':
-        url = `/orders/search/recent?seller=${this.sellerId}&sort=date_desc`;
-        break;
-      case 'pending':
-        url = `/orders/search/pending?seller=${this.sellerId}&sort=date_desc`;
-        break;
-      case 'archived':
-        url = `/orders/search/archived?seller=${this.sellerId}&sort=date_desc`;
-        break;
-      default:
-        url = `/orders/search?seller=${this.sellerId}&sort=date_desc`;
-        break;
-    }
-    // order.date_created.from=2021-10-01T00:00:00.000-00:00&order.date_created.to=2021-12-31T00:00:00.000-00:00&sort=date_desc
-    // try {
-    const response = await this.request.get<OrdersSearchResponse>(url);
+   async getOrders(filters?: string) {
+      let url;
 
-    // console.log(response);
+      switch (filters) {
+         case 'recent':
+            url = `/orders/search/recent?seller=${this.sellerId}&sort=date_desc`;
+            break;
+         case 'pending':
+            url = `/orders/search/pending?seller=${this.sellerId}&sort=date_desc`;
+            break;
+         case 'archived':
+            url = `/orders/search/archived?seller=${this.sellerId}&sort=date_desc`;
+            break;
+         default:
+            url = `/orders/search?seller=${this.sellerId}&sort=date_desc`;
+            break;
+      }
+      // order.date_created.from=2021-10-01T00:00:00.000-00:00&order.date_created.to=2021-12-31T00:00:00.000-00:00&sort=date_desc
+      // try {
+      const response = await this.request.get<OrdersSearchResponse>(url);
 
-    return response;
+      // console.log(response);
 
-  }
+      return response;
 
-  async getOrderInfo(orderId: number) {
-    // try {
-    const response = await this.request.get<MeliOrder>(`/orders/${orderId}`);
+   }
 
-    return response;
+   async getOrderInfo(orderId: number) {
+      // try {
+      const response = await this.request.get<MeliOrder>(`/orders/${orderId}`);
 
-  }
+      return response;
 
-  async getOrderMessages(orderId: number) {
-    // try {
-    const response = await this.request.get(`/messages/packs/${orderId}/sellers/${this.sellerId}?mark_as_read=false&tag=post_sale`);
+   }
 
-    return response;
+   async getOrderMessages(orderId: number) {
+      // try {
+      const response = await this.request.get(`/messages/packs/${orderId}/sellers/${this.sellerId}?mark_as_read=false&tag=post_sale`);
 
-  }
+      return response;
 
-  async sendMessage(options: MeliSendMessageOptions) {
-    // try {
-    const response = await this.request.post(`/messages/packs/${options.msgGroupId}/sellers/${this.sellerId}?tag=post_sale`, {
-      from: {
-        user_id: this.sellerId,
-      },
-      to: {
-        user_id: options.buyerId,
-      },
-      text: options.message,
-    });
+   }
 
-    return response;
+   async sendMessage(options: MeliSendMessageOptions) {
+      // try {
+      const response = await this.request.post(`/messages/packs/${options.msgGroupId}/sellers/${this.sellerId}?tag=post_sale`, {
+         from: {
+            user_id: this.sellerId,
+         },
+         to: {
+            user_id: options.buyerId,
+         },
+         text: options.message,
+      });
 
-  }
+      return response;
 
-  async getResource(resource: string): Promise<AxiosResponse<any | MeliApiError>> {
-    // try {
-    const response = await this.request.get(`${resource}`);
+   }
 
-    return response;
+   async getResource(resource: string): Promise<AxiosResponse<any | MeliApiError>> {
+      // try {
+      const response = await this.request.get(`${resource}`);
 
-  }
+      return response;
 
-  async getPackOrders(packId: number) {
-    // try {
-    const response = await this.request.get(`/packs/${packId}`);
+   }
 
-    return response;
-  }
+   async getPackOrders(packId: number) {
+      // try {
+      const response = await this.request.get(`/packs/${packId}`);
+
+      return response;
+   }
 }

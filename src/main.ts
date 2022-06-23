@@ -1,4 +1,4 @@
-import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
+import { ClassSerializerInterceptor, INestApplication, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory, Reflector } from '@nestjs/core';
 import * as cookieParser from 'cookie-parser';
@@ -10,35 +10,47 @@ import * as morgan from 'morgan';
 import * as path from 'path';
 
 async function bootstrap() {
-  // const httpsOptions = {
-  //   cert: fs.readFileSync(path.join(__dirname, '../.cert/cert.pem'), 'utf-8'),
-  //   key: fs.readFileSync(path.join(__dirname, '../.cert/key.pem'), 'utf-8'),
-  // };
+   let app: INestApplication;
 
-  // const server = express();
-  const app = await NestFactory.create(AppModule);
+   if (process.env.NODE_ENV === 'development') {
 
-  const config = app.get(ConfigService);
-  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+      const httpsOptions = {
+        cert: fs.readFileSync(path.join(__dirname, '../.cert/cert.pem'), 'utf-8'),
+        key: fs.readFileSync(path.join(__dirname, '../.cert/key.pem'), 'utf-8'),
+      };
 
-  app.use(morgan(':method :url :status - :response-time ms'));
+      app = await NestFactory.create(AppModule, {
+         httpsOptions
+      });
 
-  app.use(helmet());
-  app.use(compression());
+      app.use(morgan(':method :url :status - :response-time ms'));
 
-  app.use(cookieParser());
+   } else {
 
-  const corsOrigins = config.get<string>('CORS_ORIGINS').split(',');
+      // const server = express();
+      app = await NestFactory.create(AppModule);
+   }
 
-  app.enableCors({
-    origin: corsOrigins,
-    credentials: true,
-    methods: ['POST', 'PUT', 'GET', 'OPTIONS', 'HEAD', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Origin', 'Content-Type', 'Authorization', 'Access-Control'],
-  });
+   const config = app.get(ConfigService);
+   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
-  await app.listen(config.get('PORT', 3001));
+   app.use(helmet());
+   app.use(compression());
+
+   app.use(cookieParser());
+
+   const corsOrigins = config.get<string>('CORS_ORIGINS').split(',');
+
+   app.enableCors({
+      origin: corsOrigins,
+      credentials: true,
+      methods: ['POST', 'PUT', 'GET', 'OPTIONS', 'HEAD', 'DELETE', 'PATCH'],
+      allowedHeaders: ['Origin', 'Content-Type', 'Authorization', 'Access-Control'],
+   });
+
+   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+
+   await app.listen(config.get('PORT', 3001));
 }
 bootstrap();

@@ -1,6 +1,5 @@
 import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { groupBy } from 'lodash';
 import { fromEvent } from 'rxjs';
 import { UsersService } from 'src/users/users.service';
 import { CryptoService } from 'src/utils/crypto';
@@ -77,7 +76,7 @@ export class MeliService {
 
       for (let index = 0; index < array.length; index++) {
         try {
-          const res = await this.meli.createItem({ ...item, price: item.price + index });
+          await this.meli.createItem({ ...item, price: item.price + index });
         } catch (err) {
           console.log({ [index]: err });
         }
@@ -167,7 +166,6 @@ export class MeliService {
 
   async handleNotification(notification: MeliNotification) {
     const user = await this.users.findByMeliId(notification.user_id);
-    // console.log({ notification });
     console.log({ notification: notification.topic });
 
     if (!user || !user.config.meliAccess || !user.config.meliRefresh) return;
@@ -185,7 +183,7 @@ export class MeliService {
 
     if (notification.topic === MeliNotificationTopic.QUESTIONS) {
       await this.cache.clearCache('questions', notification.user_id);
-      await sleep(1000);
+      await sleep(500);
       await this.emitter.emitAsync(`notif-${user.id}`, { data: { ...notification, id: user.id } });
     }
 

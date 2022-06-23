@@ -8,6 +8,9 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 
 @Injectable()
 export class OrdersService {
+  configureMeli(config: { token: string; refresh: string; meliId: number; }) {
+     this.meli.configure(config)
+  }
   constructor(@InjectRepository(Order) private readonly ordersRepo: Repository<Order>, private readonly meli: MeliFunctions) {}
 
   create(createOrderDto: Partial<Order>) {
