@@ -23,7 +23,10 @@ export class MeliGuard implements CanActivate {
 
     const { user } = context.switchToHttp().getRequest() as Request;
 
+    
+
     if (!user || !user.config.meliId || !user.config.meliAccess) {
+
       throw new UnauthorizedException({
         message: 'Please link meli again',
         action: ErrorActions.LinkMeli,

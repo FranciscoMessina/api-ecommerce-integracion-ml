@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
+import { filter } from 'lodash';
 import { URLSearchParams } from 'url';
 import { ErrorActions } from '../types/actions.types';
 import { GetItemsByIdsResponse, ItemAttributes, MeliItem, MeliItemSearchResponse } from '../types/items.types.js';
@@ -305,13 +306,25 @@ export class MeliFunctions {
 
    }
 
-   async listItems() {
-      // try {
-      const response = await this.request.get(`/users/${this.sellerId}/items/search?status=active`);
+   async getItemIds(filters?: any) {
 
-      return response;
+      if (!filters) {
+         const response = await this.request.get(`/users/${this.sellerId}/items/search`);
+
+         return response;
+      }
+      
+      const params = new URLSearchParams()
+
+      if(filters.status) {
+         params.append('status', filters.status)
+      }
+
 
    }
+
+
+
 
    async getUserInfo(userId: number) {
       // try {

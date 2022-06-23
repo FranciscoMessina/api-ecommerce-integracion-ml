@@ -1,9 +1,12 @@
 import { Module } from '@nestjs/common';
-import { ItemsService } from './items.service';
+import { MeliModule } from '../meli/meli.module';
+import { UsersModule } from '../users/users.module';
 import { ItemsController } from './items.controller';
+import { ItemsService } from './items.service';
 
 @Module({
-  controllers: [ItemsController],
-  providers: [ItemsService],
+   imports: [MeliModule, UsersModule],
+   controllers: [ItemsController],
+   providers: [ItemsService],
 })
-export class ItemsModule {}
+export class ItemsModule { }
