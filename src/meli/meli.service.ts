@@ -20,6 +20,23 @@ import { MeliOauth } from './meli.oauth.js';
 
 @Injectable()
 export class MeliService {
+
+   constructor(
+      @Inject(forwardRef(() => OrdersService)) private readonly ordersService: OrdersService,
+      private readonly meli: MeliFunctions,
+      private readonly users: UsersService,
+      private readonly mails: MailsService,
+      private readonly emitter: EventEmitter2,
+      private readonly crypto: CryptoService,
+      private readonly meliOauth: MeliOauth,
+      private readonly cache: CacheService,
+   ) { }
+
+   configure(config: { token: string; refresh: string; meliId: number }) {
+      return this.meli.configure(config);
+   }
+
+
    async createQuickItem(data: CreateQuickItemDTO) {
       console.log(data);
 
@@ -34,12 +51,15 @@ export class MeliService {
 
       try {
          const item = await this.meli.createItem({
-            title: data.title, price: data.price, category_id: 'MLA3530', listing_type_id: 'gold_special', buying_mode: 'buy_it_now', currency_id: 'ARS', available_quantity: 1, condition: 'new', pictures: [
+            title: data.title, price: data.price, category_id: data.subCategory, listing_type_id: 'gold_special', buying_mode: 'buy_it_now', currency_id: 'ARS', available_quantity: 1, condition: 'new', pictures: [
                {
                   source: 'http://mla-s2-p.mlstatic.com/968521-MLA20805195516_072016-O.jpg',
                },
             ],
-            attributes
+            attributes,
+            shipping: {
+               free_shipping: data.free_shipping
+            }
          })
 
          if ('error' in item.data) {
@@ -55,20 +75,7 @@ export class MeliService {
 
       }
    }
-   constructor(
-      @Inject(forwardRef(() => OrdersService)) private readonly ordersService: OrdersService,
-      private readonly meli: MeliFunctions,
-      private readonly users: UsersService,
-      private readonly mails: MailsService,
-      private readonly emitter: EventEmitter2,
-      private readonly crypto: CryptoService,
-      private readonly meliOauth: MeliOauth,
-      private readonly cache: CacheService,
-   ) { }
 
-   configure(config: { token: string; refresh: string; meliId: number }) {
-      return this.meli.configure(config);
-   }
 
    async createItem() {
       const item = {
@@ -108,7 +115,7 @@ export class MeliService {
       };
 
       try {
-         const array = Array(200).fill(1);
+         const array = Array(10).fill(1);
 
          for (let index = 0; index < array.length; index++) {
             try {
@@ -446,9 +453,7 @@ export class MeliService {
       };
    }
    async activateItem(id: string) {
-      const { data } = await this.meli.activateItem(id);
-
-      // console.log(data);
+      const { data } = await this.meli.changeItemStatus(id, 'active')
 
       if (typeof data === undefined) throw new BadRequestException();
 
@@ -459,9 +464,7 @@ export class MeliService {
       return data;
    }
    async pauseItem(id: string) {
-      const { data } = await this.meli.pauseItem(id);
-
-      // console.log(data);
+      const { data } = await this.meli.changeItemStatus(id, 'paused');
 
       if (typeof data === undefined) throw new BadRequestException();
 
@@ -690,5 +693,19 @@ export class MeliService {
       user.config.meliId = response.data.user_id;
 
       return this.users.save(user);
+   }
+
+   async getCategories() {
+      return (await this.meli.getCategories()).data
+   }
+
+
+   async getSubCategories(categoryId: string) {
+      const response = await this.meli.getCategoryDetails(categoryId)
+
+      if ('error' in response.data) {
+         throw new HttpException(response.data, response.status)
+      }
+      return response.data.children_categories
    }
 }

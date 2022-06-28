@@ -33,6 +33,7 @@ export enum MeliNotificationTopic {
 }
 
 export interface MeliNotification {
+   _id: string;
   resource: string;
   user_id: number;
   topic: MeliNotificationTopic;
@@ -114,4 +115,34 @@ export interface MessageModeration {
 export interface MessageResource {
   id: string;
   name: string;
+}
+
+
+export type CategoriesResponse = Category[]
+
+export interface Category {
+   id: string;
+   name: string;
+   total_items_in_this_category?: number;
+}
+
+export interface CategoryDetails {
+   id: string;
+   name: string;
+   picture: string;
+   permalink: string;
+   total_items_in_this_category: number;
+   path_from_root: Category[]
+   children_categories: Category[]
+   attribute_types: string;
+   settings: {
+      [key: string]: any;
+   }
+   channel_settings: {
+      [key: string]: any;
+   }
+   meta_categ_id?: any;
+   attributable: boolean;
+   date_created: Date;
+
 }

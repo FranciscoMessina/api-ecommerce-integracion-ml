@@ -2,24 +2,27 @@ import { Allow } from 'class-validator';
 import { MeliNotificationTopic } from '../../types/meli.types';
 
 export class MeliNotificationDto {
-  @Allow()
-  resource: string;
+   @Allow()
+   _id: string;
 
-  @Allow()
-  user_id: number;
+   @Allow()
+   resource: string;
 
-  @Allow()
-  topic: MeliNotificationTopic;
+   @Allow()
+   user_id: number;
 
-  @Allow()
-  application_id: number;
+   @Allow()
+   topic: MeliNotificationTopic;
 
-  @Allow()
-  attempts: number;
+   @Allow()
+   application_id: number;
 
-  @Allow()
-  sent: Date;
+   @Allow()
+   attempts: number;
 
-  @Allow()
-  received: Date;
+   @Allow()
+   sent: Date;
+
+   @Allow()
+   received: Date;
 }

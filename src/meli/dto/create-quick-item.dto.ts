@@ -14,5 +14,9 @@ export class CreateQuickItemDTO {
    @Allow()
    channels: string[]
 
+   @IsString()
+   category: string
 
+   @IsString()
+   subCategory: string
 }

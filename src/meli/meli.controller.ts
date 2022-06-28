@@ -160,7 +160,29 @@ export class MeliController {
       });
 
       return this.meliService.createQuickItem(data)
+   }
 
+   @Get('categories')
+   async getCategories( @CurrentUser() user: User) {
+      this.meliService.configure({
+         meliId: user.config.meliId,
+         refresh: user.config.meliRefresh,
+         token: user.config.meliAccess,
+      });
+
+      return this.meliService.getCategories()
+   }
+
+   
+   @Get('categories/:categoryId')
+   async getSubCategories( @CurrentUser() user: User, @Param('categoryId') categoryId: string) {
+      this.meliService.configure({
+         meliId: user.config.meliId,
+         refresh: user.config.meliRefresh,
+         token: user.config.meliAccess,
+      });
+
+      return this.meliService.getSubCategories(categoryId)
    }
 
 

@@ -2,11 +2,10 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { filter } from 'lodash';
 import { URLSearchParams } from 'url';
 import { ErrorActions } from '../types/actions.types';
 import { GetItemsByIdsResponse, ItemAttributes, MeliItem, MeliItemSearchResponse } from '../types/items.types.js';
-import { MeliApiError, MeliSendMessageOptions } from '../types/meli.types';
+import { CategoriesResponse, CategoryDetails, MeliApiError, MeliSendMessageOptions } from '../types/meli.types';
 import { MeliOrder, OrdersSearchResponse } from '../types/orders.types.js';
 import { GetQuestionsFilters, QuestionsResponseTime } from '../types/questions.types.js';
 import { MeliOauth } from './meli.oauth.js';
@@ -252,18 +251,9 @@ export class MeliFunctions {
 
    }
 
-   async pauseItem(itemId: string): Promise<AxiosResponse<any | MeliApiError>> {
+   async changeItemStatus(itemId: string, status: 'active' | 'paused'): Promise<AxiosResponse<any | MeliApiError>> {
       // try {
-      const response = await this.request.put(`/items/${itemId}`, { status: 'paused' });
-
-      // console.log(response);
-      return response;
-
-   }
-
-   async activateItem(itemId: string): Promise<AxiosResponse<any | MeliApiError>> {
-      // try {
-      const response = await this.request.put(`/items/${itemId}`, { status: 'active' });
+      const response = await this.request.put(`/items/${itemId}`, { status });
 
       return response;
 
@@ -322,8 +312,6 @@ export class MeliFunctions {
 
 
    }
-
-
 
 
    async getUserInfo(userId: number) {
@@ -407,5 +395,17 @@ export class MeliFunctions {
       const response = await this.request.get(`/packs/${packId}`);
 
       return response;
+   }
+
+   async getCategories(siteId= 'MLA') {
+      const response = await this.request.get<CategoriesResponse>(`/sites/${siteId}/categories`)
+
+      return response
+   }
+
+   async getCategoryDetails(categoryId: string) {
+      const response = await this.request.get<CategoryDetails>(`/categories/${categoryId}`)
+
+      return response
    }
 }

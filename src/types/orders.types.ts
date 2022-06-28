@@ -162,7 +162,7 @@ export interface MeliOrder {
   context: {
     channel: string;
     site: string;
-    flows: any[];
+    flows: string[];
   };
   buyer: MeliBuyer;
   seller: {
