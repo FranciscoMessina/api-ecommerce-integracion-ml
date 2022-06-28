@@ -4,7 +4,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { URLSearchParams } from 'url';
 import { ErrorActions } from '../types/actions.types';
-import { GetItemsByIdsResponse, ItemAttributes, MeliItem, MeliItemSearchResponse } from '../types/items.types.js';
+import { Attribute, CategoryAttributesResponse, GetItemsByIdsResponse, ItemAttributes, MeliItem, MeliItemSearchResponse } from '../types/items.types.js';
 import { CategoriesResponse, CategoryDetails, MeliApiError, MeliSendMessageOptions } from '../types/meli.types';
 import { MeliOrder, OrdersSearchResponse } from '../types/orders.types.js';
 import { GetQuestionsFilters, QuestionsResponseTime } from '../types/questions.types.js';
@@ -303,12 +303,16 @@ export class MeliFunctions {
 
          return response;
       }
-      
+
       const params = new URLSearchParams()
 
-      if(filters.status) {
+      if (filters.status) {
          params.append('status', filters.status)
       }
+
+      const response = await this.request.get(`/users/${this.sellerId}/items/search`, { params });
+
+      return response;
 
 
    }
@@ -397,7 +401,7 @@ export class MeliFunctions {
       return response;
    }
 
-   async getCategories(siteId= 'MLA') {
+   async getCategories(siteId = 'MLA') {
       const response = await this.request.get<CategoriesResponse>(`/sites/${siteId}/categories`)
 
       return response
@@ -407,5 +411,31 @@ export class MeliFunctions {
       const response = await this.request.get<CategoryDetails>(`/categories/${categoryId}`)
 
       return response
+   }
+
+   async getCategoryAttributes(categoryId: string) {
+      const response = await this.request.get<CategoryAttributesResponse>(`/categories/${categoryId}/attributes`)
+
+      return response
+   }
+
+   getAttributeFillerValue(attribute: Attribute) {
+      switch (attribute.value_type) {
+         case 'string':
+            return `${attribute.id} filler`
+         case 'list':
+            return attribute.values || []
+         case 'boolean':
+            return {
+               metadata: {
+                  value: false
+               }
+            }
+         case 'number':
+            return Math.floor(Math.random() * 1000)
+         case 'number_unit':
+            return 25
+
+      }
    }
 }

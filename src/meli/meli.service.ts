@@ -36,10 +36,7 @@ export class MeliService {
       return this.meli.configure(config);
    }
 
-
    async createQuickItem(data: CreateQuickItemDTO) {
-      console.log(data);
-
       const attributes = []
 
       if (data.channels.length === 1) {
@@ -48,6 +45,22 @@ export class MeliService {
             value_name: data.channels[0]
          })
       }
+
+      const attributesRes = await this.meli.getCategoryAttributes(data.subCategory)
+
+
+      if ('error' in attributesRes.data) {
+         throw new HttpException(attributesRes.data, attributesRes.status)
+      }
+
+      attributesRes.data.map(attr => {
+         if (attr.tags.required) {
+            attributes.push({
+               id: attr.id,
+               value_name: this.meli.getAttributeFillerValue(attr)
+            })
+         }
+      })
 
       try {
          const item = await this.meli.createItem({
@@ -61,6 +74,10 @@ export class MeliService {
                free_shipping: data.free_shipping
             }
          })
+
+         if (typeof item === 'undefined') {
+            throw new InternalServerErrorException()
+         }
 
          if ('error' in item.data) {
             throw new HttpException(item.data, item.status)
@@ -144,17 +161,27 @@ export class MeliService {
       }
 
       const mappedItems = await Promise.all(res.data.results.map(async (id: string) => {
-         const itemRes = await this.meli.getItem(id, ['attributes', 'shipping', 'secure_thumbnail', 'permalink', 'price', 'available_quantity', 'sold_quantity', 'condition', 'status'])
+         const response = await this.meli.getItem(id, ['attributes', 'shipping', 'secure_thumbnail', 'permalink', 'price', 'available_quantity', 'sold_quantity', 'condition', 'status', 'title', 'id', 'channels'])
 
-         if ('error' in itemRes.data) {
+
+         if (typeof response === 'undefined') {
             return {
                error: true,
                message: `Could not fetch item ${id}`,
-               rawData: itemRes.data
             }
          }
 
-         return itemRes.data
+         const { data } = response
+
+         if ('error' in data) {
+            return {
+               error: true,
+               message: `Could not fetch item ${id}`,
+               rawData: data
+            }
+         }
+
+         return data
       }))
 
 

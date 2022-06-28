@@ -237,3 +237,6 @@ export interface Attribute {
   example?: string;
   hint?: string;
 }
+
+
+export type CategoryAttributesResponse = Attribute[]
