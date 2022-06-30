@@ -42,7 +42,7 @@ export class UsersService {
     return this.userRepo.findOneBy({ email });
   }
 
-  findById(id: string) {
+  findById(id: number) {
     return this.userRepo.findOne({ where: { id }, relations: { config: true } });
   }
 
@@ -149,7 +149,7 @@ export class UsersService {
     });
   }
 
-  async deleteQuickAnswer(id: string) {
+  async deleteQuickAnswer(id: number) {
     const qa = await this.qaRepo.findOneBy({ id: id });
 
     return this.qaRepo.remove(qa);

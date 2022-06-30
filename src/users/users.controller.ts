@@ -38,7 +38,7 @@ export class UsersController {
 
   @Delete('/quickanswers/:id')
   deleteQuickAnswer(@Param('id') id: string) {
-    return this.usersService.deleteQuickAnswer(id);
+    return this.usersService.deleteQuickAnswer(+id);
   }
 
   @Post('/hello')

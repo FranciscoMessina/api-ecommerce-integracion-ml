@@ -3,8 +3,8 @@ import { User } from './user.entity';
 
 @Entity('quick_answers')
 export class QuickAnswer {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column()
   name: string;

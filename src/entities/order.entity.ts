@@ -4,8 +4,8 @@ import { User } from './user.entity.js';
 
 @Entity('orders')
 export class Order {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column({ nullable: true })
   cartId?: number;

@@ -1,12 +1,12 @@
-import { IsOptional } from 'class-validator';
+import { Allow } from 'class-validator';
 
 export class MeliOauthQueryDto {
-  @IsOptional()
-  code: string;
+   @Allow()
+   code: string;
 
-  @IsOptional()
-  state?: string;
+   @Allow()
+   state?: number;
 
-  @IsOptional()
-  error?: string;
+   @Allow()
+   error?: string;
 }

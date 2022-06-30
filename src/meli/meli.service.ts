@@ -64,7 +64,7 @@ export class MeliService {
 
       try {
          const item = await this.meli.createItem({
-            title: data.title, price: data.price, category_id: data.subCategory, listing_type_id: 'gold_special', buying_mode: 'buy_it_now', currency_id: 'ARS', available_quantity: 1, condition: 'new', pictures: [
+            title: data.title, price: data.price, category_id: data.subCategory, listing_type_id: 'gold_special', buying_mode: 'buy_it_now', currency_id: 'ARS', available_quantity: 1, condition: data.condition, pictures: [
                {
                   source: 'http://mla-s2-p.mlstatic.com/968521-MLA20805195516_072016-O.jpg',
                },
@@ -123,10 +123,6 @@ export class MeliService {
             {
                id: 'BRAND',
                value_name: 'Marca del producto',
-            },
-            {
-               id: 'EAN',
-               value_name: '7898095297749',
             },
          ],
       };

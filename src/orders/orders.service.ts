@@ -18,7 +18,7 @@ export class OrdersService {
     return this.ordersRepo.save(order);
   }
 
-  async find(userId: string, options?: FindOrdersOptions) {
+  async find(userId: number, options?: FindOrdersOptions) {
     const limit = options?.limit || 25;
     const offset = options?.offset || 0;
 
@@ -74,11 +74,11 @@ export class OrdersService {
     };
   }
 
-  findOne(id: string) {
+  findOne(id: number) {
     return this.ordersRepo.findOneBy({ id });
   }
 
-  update(id: string, updateOrderDto: UpdateOrderDto) {
+  update(id: number, updateOrderDto: UpdateOrderDto) {
     return this.ordersRepo.update(
       {
         id,
@@ -89,7 +89,7 @@ export class OrdersService {
     );
   }
 
-  remove(id: string) {
+  remove(id: number) {
     return this.ordersRepo.delete({ id });
   }
 

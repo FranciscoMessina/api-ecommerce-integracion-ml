@@ -4,8 +4,8 @@ import { User } from './user.entity';
 
 @Entity('user-configs')
 export class UserConfig {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column({ nullable: true })
   hello?: string;

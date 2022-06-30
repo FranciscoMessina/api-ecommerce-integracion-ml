@@ -19,4 +19,7 @@ export class CreateQuickItemDTO {
 
    @IsString()
    subCategory: string
+
+   @IsString()
+   condition: string
 }
