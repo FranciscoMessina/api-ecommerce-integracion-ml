@@ -225,9 +225,9 @@ export class MeliFunctions {
       return response;
    }
 
-   async searchForItems(searchQuery: string) {
+   async searchForItems(searchQuery: string, limit?: number) {
       // try {
-      const response = await this.request.get<MeliItemSearchResponse>(`/users/${this.sellerId}/items/search?q=${searchQuery}&status=active`);
+      const response = await this.request.get<MeliItemSearchResponse>(`/users/${this.sellerId}/items/search?q=${searchQuery}&status=active&limit=${limit || 50}`);
 
       return response;
 
@@ -419,12 +419,12 @@ export class MeliFunctions {
       return response
    }
 
-   getAttributeFillerValue(attribute: Attribute) {
+   getAttributeFillerValue(attribute: Attribute): any {
       switch (attribute.value_type) {
          case 'string':
             return `${attribute.id} filler`
          case 'list':
-            return attribute.values || []
+            return attribute.values[0] || []
          case 'boolean':
             return {
                metadata: {

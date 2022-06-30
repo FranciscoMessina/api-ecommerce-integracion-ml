@@ -14,7 +14,11 @@ export class OrdersController {
 
    @Post()
    create(@Body() createOrderDto: CreateOrderDto, @CurrentUser() user: User) {
-      return this.ordersService.create({ ...createOrderDto, user });
+      console.log(createOrderDto);
+
+      return 'Hola1'
+      
+      return this.ordersService.create({ ...createOrderDto }, user);
    }
 
    @Get()

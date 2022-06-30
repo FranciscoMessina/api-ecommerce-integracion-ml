@@ -310,19 +310,40 @@ export class MeliService {
          }
 
          if (!dbOrder) {
-            let meliOrderIds = [];
+            let meliOrderIds: number[] = [];
+            let items = [];
 
             if (order.pack_id) {
                const packInfo = await this.meli.getPackOrders(order.pack_id);
 
                meliOrderIds = packInfo.data.orders.map((order: any) => order.id);
+
+               items = await Promise.all(meliOrderIds.map(async id => {
+                  const { data} = await this.meli.getOrderInfo(id);
+
+                  if('error' in data) {
+                     return null
+                  }
+
+                  return {
+                     id: data.order_items[0].item.id,
+                     quantity: data.order_items[0].quantity,
+                     price: data.order_items[0].unit_price,
+                  }
+               }))
             } else {
                meliOrderIds.push(order.id);
+               items = order.order_items.map((item) => ({
+                  id: item.item.id,
+                  quantity: item.quantity,
+                  price: item.unit_price,
+               }))
             }
 
             const saleChannel = order.context.channel === 'marketplace' ? SaleChannel.ML : SaleChannel.MS;
 
             dbOrder = await this.ordersService.create({
+               createdAt: order.date_created,
                saleChannel,
                meliOrderIds,
                buyer: {
@@ -333,13 +354,8 @@ export class MeliService {
                },
                shippingId: order.shipping.id || null,
                cartId: order.pack_id || null,
-               items: order.order_items.map((item) => ({
-                  id: item.item.id,
-                  quantity: item.quantity,
-                  price: item.unit_price,
-               })),
-               user,
-            });
+               items,
+            }, user);
          }
       } catch (err) {
          console.log({ err });
@@ -429,15 +445,13 @@ export class MeliService {
    }
 
    async searchItems(q: string) {
-      const { data } = await this.meli.searchForItems(q);
-
-      // console.log(data);
+      const { data } = await this.meli.searchForItems(q, 40);
 
       if (typeof data === undefined) throw new BadRequestException();
 
       if ('error' in data) throw new BadRequestException(data);
 
-      if (data.results.length === 0) throw new NotFoundException('No se encontraron resultados');
+      if (data.results.length === 0) return { paging: data.paging, results: data.results }
 
       let items;
       if (data.results.length > 20) {

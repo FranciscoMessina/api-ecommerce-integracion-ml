@@ -7,7 +7,14 @@ export class Order {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: 'bigint', transformer: {
+   from(value) {
+      if(!value) return value;
+
+      return parseInt(value, 10)
+   },
+   to: (value) => value
+  } })
   cartId?: number;
 
   @Column('bigint', {
@@ -42,7 +49,7 @@ export class Order {
    },
    to: (value) => value
   } })
-  shippingId: number;
+  shippingId?: number;
 
   @Column({ type: 'enum', enum: InvoiceStatus, default: InvoiceStatus.Pending })
   invoiceStatus: InvoiceStatus;

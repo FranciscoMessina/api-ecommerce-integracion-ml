@@ -15,8 +15,8 @@ async function bootstrap() {
    if (process.env.NODE_ENV === 'development') {
 
       const httpsOptions = {
-        cert: fs.readFileSync(path.join(__dirname, '../.cert/cert.pem'), 'utf-8'),
-        key: fs.readFileSync(path.join(__dirname, '../.cert/key.pem'), 'utf-8'),
+         cert: fs.readFileSync(path.join(__dirname, '../.cert/cert.pem'), 'utf-8'),
+         key: fs.readFileSync(path.join(__dirname, '../.cert/key.pem'), 'utf-8'),
       };
 
       app = await NestFactory.create(AppModule, {
@@ -33,6 +33,7 @@ async function bootstrap() {
 
    const config = app.get(ConfigService);
    app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+
 
 
    app.use(helmet());
